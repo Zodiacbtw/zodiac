@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
 const ProductCard = ({
@@ -15,13 +16,13 @@ const ProductCard = ({
   return (
     <div className={`bg-white rounded-lg shadow-md overflow-hidden flex flex-col group ${className}`}>
       <div className="relative">
-        <a href={productUrl} className="block">
+        <Link to={productUrl} className="block">
           <img
             src={imageUrl}
             alt={imageAlt || title}
             className="w-full h-48 sm:h-56 md:h-64 object-cover group-hover:opacity-90 transition-opacity duration-300"
           />
-        </a>
+        </Link>
         {tag && (
           <span className={`absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded ${tagColor}`}>
             {tag}
@@ -31,7 +32,7 @@ const ProductCard = ({
 
       <div className="p-4 sm:p-5 flex flex-col flex-grow">
         <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-1 truncate group-hover:text-blue-600 transition-colors">
-          <a href={productUrl}>{title}</a>
+          <Link to={productUrl}>{title}</Link>
         </h3>
 
         <div className="flex items-baseline gap-2 mb-3">
@@ -47,13 +48,13 @@ const ProductCard = ({
           )}
         </div>
 
-        <a
-          href={productUrl}
+        <Link
+          to={productUrl}
           className="mt-auto inline-flex items-center justify-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline transition-colors"
         >
           View Details
           <ArrowRight size={16} strokeWidth={2} />
-        </a>
+        </Link>
       </div>
     </div>
   );

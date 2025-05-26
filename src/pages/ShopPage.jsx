@@ -1,42 +1,41 @@
 import React from 'react';
 import ProductCard from '../components/ProductCard';
-
 const sampleProducts = [
   {
-    id: 'prod1',
+    id: 'sprod1',
+    title: 'Premium T-Shirt',
     tag: 'NEW',
     tagColor: 'bg-red-500 text-white',
-    title: 'Premium T-Shirt',
     price: '$29.99',
     imageUrl: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
     productUrl: '/product/premium-t-shirt'
   },
   {
-    id: 'prod2',
+    id: 'sprod2',
     title: 'Elegant Watch',
     price: '$199.99',
+    oldPrice: '$249.99',
     imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
     productUrl: '/product/elegant-watch'
   },
   {
-    id: 'prod3',
+    id: 'sprod3',
+    title: 'Wireless Headphones',
     tag: 'SALE',
     tagColor: 'bg-green-500 text-white',
-    title: 'Wireless Headphones',
     price: '$79.99',
     oldPrice: '$99.99',
     imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
     productUrl: '/product/wireless-headphones'
   },
   {
-    id: 'prod4',
+    id: 'sprod4',
     title: 'Leather Backpack',
     price: '$120.00',
-    imageUrl: 'https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?q=80&w=1888&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+    imageUrl: 'https://images.unsplash.com/photo-1622560480605-d83c853bc5c3?q=80&w=500&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
     productUrl: '/product/leather-backpack'
   },
 ];
-
 
 const ShopPage = () => {
   return (
@@ -65,6 +64,8 @@ const ShopPage = () => {
           <select className="text-sm border border-gray-300 rounded py-2 px-3 focus:ring-1 focus:ring-blue-500 focus:border-blue-500">
             <option>Sort by relevance</option>
             <option>Sort by price: low to high</option>
+            <option>Sort by price: high to low</option>
+            <option>Sort by newness</option>
           </select>
         </div>
       </div>
@@ -96,7 +97,7 @@ const ShopPage = () => {
           ))}
         </div>
       </div>
-      
+
       <div className="mt-10 md:mt-12 flex justify-center">
         <nav className="flex rounded-md " aria-label="Pagination">
           <a href="#" className="relative inline-flex items-center px-3 py-1.5 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
