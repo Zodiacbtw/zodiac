@@ -13,9 +13,9 @@ const slidesData = [
   {
     id: 1,
     imagePlaceholder: 'bg-blue-500',
-    subtitle: 'SUMMER 2020',
+    subtitle: 'SUMMER 2025',
     title: 'NEW COLLECTION',
-    description: 'We know how large objects will act, but things on a small scale.',
+    description: 'Our new summer collection is ready and steady for you.',
     buttonText: 'SHOP NOW',
     buttonLink: '/shop',
     textAlign: 'text-left',
@@ -24,9 +24,9 @@ const slidesData = [
   {
     id: 2,
     imagePlaceholder: 'bg-pink-400',
-    subtitle: 'SUMMER 2020',
+    subtitle: 'SUMMER 2025',
     title: "IT'S A SPECIAL GIFT",
-    description: 'We know how large objects will act, but things on a small scale.',
+    description: 'Very special gift for you and you only.',
     buttonText: 'SHOP NOW',
     buttonLink: '/shop/special',
     textAlign: 'text-left',

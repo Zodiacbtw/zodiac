@@ -20,7 +20,7 @@ const Header = () => {
         <div className="flex items-center justify-between h-16 md:h-20">
           <div className="flex-shrink-0">
             <Link to="/" className="text-xl sm:text-2xl font-bold text-gray-900">
-              BrandName
+              Zodiac
             </Link>
           </div>
 
