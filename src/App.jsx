@@ -5,6 +5,8 @@ import Footer from './layout/Footer';
 import PageContent from './layout/PageContent';
 import HomePage from './pages/HomePage';
 import ShopPage from './pages/ShopPage';
+import ProductDetailPage from './pages/ProductDetailPage';
+import ContactPage from './pages/ContactPage';
 
 function App() {
   return (
@@ -16,8 +18,14 @@ function App() {
             <Route exact path="/">
               <HomePage />
             </Route>
-            <Route path="/shop">
+            <Route exact path="/shop">
               <ShopPage />
+            </Route>
+            <Route path="/product/:productId">
+              <ProductDetailPage />
+            </Route>
+            <Route exact path="/contact">
+              <ContactPage />
             </Route>
           </Switch>
         </PageContent>
