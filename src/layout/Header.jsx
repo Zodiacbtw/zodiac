@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Search, User, ShoppingCart, Menu, X } from 'lucide-react';
+import { Search, User, ShoppingCart, Menu, X, UserPlus } from 'lucide-react';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -40,10 +40,13 @@ const Header = () => {
             <button className="text-gray-500 hover:text-blue-600">
               <Search size={20} strokeWidth={1.5} />
             </button>
-            <button className="text-gray-500 hover:text-blue-600">
+            <Link to="/signup" className="text-gray-500 hover:text-blue-600" title="Sign Up">
+              <UserPlus size={20} strokeWidth={1.5} />
+            </Link>
+            <button className="text-gray-500 hover:text-blue-600" title="Login">
               <User size={20} strokeWidth={1.5} />
             </button>
-            <button className="text-gray-500 hover:text-blue-600 relative">
+            <button className="text-gray-500 hover:text-blue-600 relative" title="Shopping Cart">
               <ShoppingCart size={20} strokeWidth={1.5} />
               <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
                 3
@@ -52,6 +55,9 @@ const Header = () => {
           </div>
 
           <div className="md:hidden flex items-center">
+             <Link to="/signup" className="text-gray-500 hover:text-blue-600 mr-3" title="Sign Up">
+              <UserPlus size={24} strokeWidth={1.5} />
+            </Link>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="text-gray-600 hover:text-blue-600 focus:outline-none"
@@ -77,8 +83,8 @@ const Header = () => {
             ))}
             <div className="flex justify-start space-x-6 pt-4 pl-3 mt-3 border-t">
                 <button className="text-gray-500 hover:text-blue-600"> <Search size={22} strokeWidth={1.5}/> </button>
-                <button className="text-gray-500 hover:text-blue-600"> <User size={22} strokeWidth={1.5}/> </button>
-                <button className="text-gray-500 hover:text-blue-600 relative"> <ShoppingCart size={22} strokeWidth={1.5}/> <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">3</span></button>
+                <button className="text-gray-500 hover:text-blue-600" title="Login"> <User size={22} strokeWidth={1.5}/> </button>
+                <button className="text-gray-500 hover:text-blue-600 relative" title="Shopping Cart"> <ShoppingCart size={22} strokeWidth={1.5}/> <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">3</span></button>
             </div>
           </nav>
         </div>
