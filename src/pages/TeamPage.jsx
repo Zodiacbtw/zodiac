@@ -2,19 +2,8 @@ import React from 'react';
 import { Linkedin, Github, Globe } from 'lucide-react';
 
 const teamMembers = [
-  {
+    {
     id: 1,
-    name: 'Emre Şahiner',
-    role: 'Project Manager',
-    imageUrl: 'https://ca.slack-edge.com/T046N0ZLKU4-U04798UTQFJ-a10ca8ef7bb2-512',
-    bio: 'Experienced project manager with a passion for delivering high-quality digital products and leading successful teams.',
-    socials: [
-      { icon: <Linkedin size={20} />, url: 'https://www.linkedin.com/in/emresahinerjourneyapp/' },
-      { icon: <Github size={20} />, url: 'https://github.com/EmreWorkintech' },
-    ],
-  },
-  {
-    id: 2,
     name: 'Doğukan Tekin',
     role: 'Full Stack Developer',
     imageUrl: 'https://ca.slack-edge.com/T046N0ZLKU4-U084V3BEJBA-f1142d3e04c8-512',
@@ -22,6 +11,17 @@ const teamMembers = [
     socials: [
       { icon: <Linkedin size={20} />, url: 'https://www.linkedin.com/in/dogukantekin/' },
       { icon: <Github size={20} />, url: 'https://github.com/Zodiacbtw' },
+    ],
+  },
+  {
+    id: 2,
+    name: 'Emre Şahiner',
+    role: 'Project Manager',
+    imageUrl: 'https://ca.slack-edge.com/T046N0ZLKU4-U04798UTQFJ-a10ca8ef7bb2-512',
+    bio: 'Experienced project manager with a passion for delivering high-quality digital products and leading successful teams.',
+    socials: [
+      { icon: <Linkedin size={20} />, url: 'https://www.linkedin.com/in/emresahinerjourneyapp/' },
+      { icon: <Github size={20} />, url: 'https://github.com/EmreWorkintech' },
     ],
   },
 ];
