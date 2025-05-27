@@ -7,13 +7,16 @@ import { useHistory } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Loader2 } from 'lucide-react';
+import { useSelector } from 'react-redux';
 
 const phoneRegExp = /^(05\d{9})$/;
 const taxNoRegExp = /^T\d{4}V\d{6}$/;
 const ibanRegExp = /TR[0-9]{2}[ ]?[0-9]{4}[ ]?[0-9]{4}[ ]?[0-9]{4}[ ]?[0-9]{4}[ ]?[0-9]{2}|TR[0-9]{24}/;
 
 const SignUpPage = () => {
-  const [roles, setRoles] = useState([]);
+  const rolesFromStore = useSelector(state => state.client.roles);
+  const isRolesLoadingFromStore = useSelector(state => state.client.isRolesLoading);
+
   const [isLoading, setIsLoading] = useState(false);
   const history = useHistory();
   const [defaultRoleId, setDefaultRoleId] = useState('');
@@ -73,66 +76,33 @@ const SignUpPage = () => {
   const selectedRole = watch('role_id');
 
   useEffect(() => {
-    const fetchRolesAndSetDefaults = async () => {
-      try {
-        const response = await axiosInstance.get('/roles');
-        let fetchedRoles = response.data;
+    if (rolesFromStore && rolesFromStore.length > 0) {
+      const customerRole = rolesFromStore.find(role => role.code === 'customer');
+      const storeRole = rolesFromStore.find(role => role.code === 'store');
 
-        // Rolleri istediğimiz sıraya göre yeniden düzenle
-        const desiredOrder = ["customer", "store", "admin"]; // API'den gelen `code` alanlarına göre
-        
-        fetchedRoles.sort((a, b) => {
-          const indexA = desiredOrder.indexOf(a.code);
-          const indexB = desiredOrder.indexOf(b.code);
-          
-          // Eğer bir rol desiredOrder'da yoksa, sona at (veya -1 ile en başa at, duruma göre)
-          if (indexA === -1) return 1;
-          if (indexB === -1) return -1;
-          
-          return indexA - indexB;
-        });
-        
-        setRoles(fetchedRoles);
-
-        const customerRole = fetchedRoles.find(role => role.code === 'customer');
-        const storeRole = fetchedRoles.find(role => role.code === 'store');
-
-        if (storeRole) {
-          setStoreRoleId(storeRole.id.toString());
-        }
-
-        let newDefaultRoleId = '';
-        if (customerRole) {
-          newDefaultRoleId = customerRole.id.toString();
-        } else if (fetchedRoles.length > 0) {
-          newDefaultRoleId = fetchedRoles[0].id.toString();
-        }
-        
-        setDefaultRoleId(newDefaultRoleId);
-        
-        reset({
-          name: '',
-          email: '',
-          password: '',
-          confirmPassword: '',
-          role_id: newDefaultRoleId,
-          storeName: '',
-          storePhone: '',
-          storeTaxId: '',
-          storeBankAccount: '',
-        });
-      } catch (error) {
-        console.error("Error fetching roles:", error);
-        toast.error("Could not fetch roles. Please try again.");
+      if (storeRole) {
+        setStoreRoleId(storeRole.id.toString());
       }
-    };
-    fetchRolesAndSetDefaults();
-  }, [reset]);
+
+      let newDefaultRoleId = '';
+      if (customerRole) {
+        newDefaultRoleId = customerRole.id.toString();
+      } else if (rolesFromStore.length > 0) {
+        newDefaultRoleId = rolesFromStore[0].id.toString();
+      }
+      
+      setDefaultRoleId(newDefaultRoleId);
+      
+      reset(prevValues => ({
+        ...prevValues,
+        role_id: newDefaultRoleId,
+      }));
+    }
+  }, [rolesFromStore, reset]);
 
   const onSubmit = async (data) => {
     setIsLoading(true);
     const { confirmPassword, storeName, storePhone, storeTaxId, storeBankAccount, ...basePayload } = data;
-    
     let payload = { ...basePayload };
 
     if (payload.role_id === storeRoleId && !!storeRoleId) {
@@ -201,8 +171,8 @@ const SignUpPage = () => {
                 {...register('role_id')}
                 className={`block w-full rounded-md border-0 py-2.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset ${errors.role_id ? 'ring-red-500' : 'ring-gray-300'} focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm sm:leading-6`}
               >
-                {roles.length === 0 && <option value="" disabled>Loading roles...</option>}
-                {roles.map(role => (
+                {(isRolesLoadingFromStore || rolesFromStore.length === 0) && <option value="" disabled>Loading roles...</option>}
+                {rolesFromStore.map(role => (
                   <option key={role.id} value={role.id.toString()}>
                     {role.name}
                   </option>
@@ -225,7 +195,7 @@ const SignUpPage = () => {
           <div>
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoading || isRolesLoadingFromStore}
               className="group relative w-full flex justify-center py-2.5 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:bg-indigo-400 disabled:cursor-not-allowed"
             >
               {isLoading ? (

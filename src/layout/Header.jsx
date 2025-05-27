@@ -1,16 +1,26 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Search, User, ShoppingCart, Menu, X, UserPlus } from 'lucide-react';
+import { Link, useHistory } from 'react-router-dom';
+import { Search, User as UserIcon, ShoppingCart, Menu, X, UserPlus, LogOut, LogInIcon } from 'lucide-react';
+import { useSelector, useDispatch } from 'react-redux';
+import { logoutUser } from '../store/actions/clientActions';
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const user = useSelector(state => state.client.user);
+  const dispatch = useDispatch();
+  const history = useHistory();
+
+  const handleLogout = () => {
+    dispatch(logoutUser(history));
+    setIsMobileMenuOpen(false);
+  };
 
   const navLinks = [
     { name: 'Home', path: '/' },
     { name: 'Shop', path: '/shop' },
     { name: 'About Us', path: '/about' },
     { name: 'Our Team', path: '/team' },
-    { name: 'Blog', path: '/blog' },
+    // { name: 'Blog', path: '/blog' },
     { name: 'Contact', path: '/contact' },
   ];
 
@@ -37,15 +47,39 @@ const Header = () => {
           </nav>
 
           <div className="hidden md:flex items-center space-x-4">
-            <button className="text-gray-500 hover:text-blue-600">
+            <button className="text-gray-500 hover:text-blue-600" title="Search">
               <Search size={20} strokeWidth={1.5} />
             </button>
-            <Link to="/signup" className="text-gray-500 hover:text-blue-600" title="Sign Up">
-              <UserPlus size={20} strokeWidth={1.5} />
-            </Link>
-            <button className="text-gray-500 hover:text-blue-600" title="Login">
-              <User size={20} strokeWidth={1.5} />
-            </button>
+            {user ? (
+              <>
+                <div className="flex items-center space-x-2 cursor-default" title={user.email || ''}>
+                  {user.gravatarUrl && (
+                    <img
+                      src={user.gravatarUrl}
+                      alt={user.name || 'User Avatar'}
+                      className="w-8 h-8 rounded-full border border-gray-200"
+                    />
+                  )}
+                  {user.name && (
+                    <span className="text-sm font-medium text-gray-700 hidden lg:block">
+                      {user.name}
+                    </span>
+                  )}
+                </div>
+                <button onClick={handleLogout} className="text-gray-500 hover:text-red-600" title="Logout">
+                  <LogOut size={20} strokeWidth={1.5} />
+                </button>
+              </>
+            ) : (
+              <>
+                <Link to="/signup" className="text-gray-500 hover:text-blue-600" title="Sign Up">
+                  <UserPlus size={20} strokeWidth={1.5} />
+                </Link>
+                <Link to="/login" className="text-gray-500 hover:text-blue-600" title="Login">
+                  <LogInIcon size={20} strokeWidth={1.5} />
+                </Link>
+              </>
+            )}
             <button className="text-gray-500 hover:text-blue-600 relative" title="Shopping Cart">
               <ShoppingCart size={20} strokeWidth={1.5} />
               <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
@@ -55,9 +89,20 @@ const Header = () => {
           </div>
 
           <div className="md:hidden flex items-center">
-             <Link to="/signup" className="text-gray-500 hover:text-blue-600 mr-3" title="Sign Up">
-              <UserPlus size={24} strokeWidth={1.5} />
-            </Link>
+            {user ? (
+                 <button onClick={handleLogout} className="text-gray-500 hover:text-red-600 mr-3" title="Logout">
+                    <LogOut size={24} strokeWidth={1.5} />
+                </button>
+            ) : (
+                 <>
+                    <Link to="/signup" className="text-gray-500 hover:text-blue-600 mr-3" title="Sign Up">
+                        <UserPlus size={24} strokeWidth={1.5} />
+                    </Link>
+                    <Link to="/login" className="text-gray-500 hover:text-blue-600 mr-4" title="Login">
+                        <LogInIcon size={24} strokeWidth={1.5} />
+                    </Link>
+                 </>
+            )}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="text-gray-600 hover:text-blue-600 focus:outline-none"
@@ -81,10 +126,9 @@ const Header = () => {
                 {link.name}
               </Link>
             ))}
-            <div className="flex justify-start space-x-6 pt-4 pl-3 mt-3 border-t">
+            <div className="flex justify-around items-center pt-4 mt-3 border-t">
                 <button className="text-gray-500 hover:text-blue-600"> <Search size={22} strokeWidth={1.5}/> </button>
-                <button className="text-gray-500 hover:text-blue-600" title="Login"> <User size={22} strokeWidth={1.5}/> </button>
-                <button className="text-gray-500 hover:text-blue-600 relative" title="Shopping Cart"> <ShoppingCart size={22} strokeWidth={1.5}/> <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">3</span></button>
+                <button className="text-gray-500 hover:text-blue-600 relative"> <ShoppingCart size={22} strokeWidth={1.5}/> <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">3</span></button>
             </div>
           </nav>
         </div>
