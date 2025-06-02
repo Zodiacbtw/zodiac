@@ -1,99 +1,45 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import Slider from '../components/Slider';
 import ProductCard from '../components/ProductCard';
 import { Link } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-
-const featuredProductsData = [
-  {
-    id: 'hp_prod1',
-    tag: 'NEW',
-    tagColor: 'bg-red-500 text-white',
-    title: 'Premium T-Shirt',
-    price: '$29.99',
-    imageUrl: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-    productUrl: '/product/premium-t-shirt'
-  },
-  {
-    id: 'hp_prod2',
-    title: 'Elegant Watch',
-    price: '$199.99',
-    imageUrl: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-    productUrl: '/product/elegant-watch'
-  },
-  {
-    id: 'hp_prod3',
-    tag: 'SALE',
-    tagColor: 'bg-green-500 text-white',
-    title: 'Wireless Headphones',
-    price: '$79.99',
-    oldPrice: '$99.99',
-    imageUrl: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60',
-    productUrl: '/product/wireless-headphones'
-  },
-];
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchProducts } from '../store/actions/productActions';
+import { Loader2 } from 'lucide-react';
 
 const categoryTitleToEnglishMap = {
-  'Tişört': 'T-shirt',
-  'Ayakkabı': 'Shoes',
-  'Ceket': 'Jackets',
-  'Elbise': 'Dresses',
-  'Etek': 'Skirts',
-  'Gömlek': 'Shirts',
-  'Kazak': 'Sweaters',
-  'Pantolon': 'Pants',
-  'Pantalon': 'Pants',
+  'Tişört': 'T-shirt', 'Ayakkabı': 'Shoes', 'Ceket': 'Jackets', 'Elbise': 'Dresses',
+  'Etek': 'Skirts', 'Gömlek': 'Shirts', 'Kazak': 'Sweaters', 'Pantolon': 'Pants', 'Pantalon': 'Pants',
 };
-
-const categoryTitleToSlugMap = {
-  'Tişört': 't-shirt',
-  'Ayakkabı': 'shoes',
-  'Ceket': 'jackets',
-  'Elbise': 'dresses',
-  'Etek': 'skirts',
-  'Gömlek': 'shirts',
-  'Kazak': 'sweaters',
-  'Pantolon': 'pants',
-  'Pantalon': 'pants',
-};
-
-const slugifyCategoryTitle = (title) => {
-  if (!title) return 'category';
-  const correctedTitle = (title.toLowerCase() === 'pantalon') ? 'Pantolon' : title;
-  
-  if (categoryTitleToSlugMap[correctedTitle]) {
-    return categoryTitleToSlugMap[correctedTitle];
-  }
-  return correctedTitle
-    .toLowerCase()
-    .replace(/ı/g, 'i')
-    .replace(/ğ/g, 'g')
-    .replace(/ü/g, 'u')
-    .replace(/ş/g, 's')
-    .replace(/ö/g, 'o')
-    .replace(/ç/g, 'c')
-    .replace(/\s+/g, '-')
-    .replace(/[^\w-]+/g, '')
-    .replace(/--+/g, '-')
-    .replace(/^-+/, '')
-    .replace(/-+$/, '');
-};
-
-const genderToUrlKey = (genderApiValue) => {
-  if (genderApiValue === 'k') return 'women';
-  if (genderApiValue === 'e') return 'men';
-  return 'unisex';
-};
-
 const displayCategoryTitleInEnglish = (turkishTitle) => {
   if (!turkishTitle) return 'Category';
   const correctedTitle = (turkishTitle.toLowerCase() === 'pantalon') ? 'Pantolon' : turkishTitle;
   return categoryTitleToEnglishMap[correctedTitle] || correctedTitle;
 };
+const slugifyCategoryTitle = (title) => {
+  if (!title) return 'category';
+  let titleToSlug = title;
+  if (title.toLowerCase() === 'pantalon') titleToSlug = 'Pantolon';
+  const englishTitle = categoryTitleToEnglishMap[titleToSlug] || titleToSlug;
+  return englishTitle.toLowerCase().replace(/ı/g, 'i').replace(/ğ/g, 'g').replace(/ü/g, 'u').replace(/ş/g, 's').replace(/ö/g, 'o').replace(/ç/g, 'c').replace(/\s+/g, '-').replace(/[^\w-]+/g, '').replace(/--+/g, '-').replace(/^-+/, '').replace(/-+$/, '');
+};
+const genderToUrlKey = (genderApiValue) => (genderApiValue === 'k' ? 'women' : genderApiValue === 'e' ? 'men' : 'unisex');
 
 
 const HomePage = () => {
+  const dispatch = useDispatch();
   const { categories, loading: categoriesLoading, error: categoriesError } = useSelector(state => state.category);
+  const { 
+    productList: allProducts,
+    loading: productsLoading, 
+    error: productsErrorMsg
+  } = useSelector(state => state.product);
+
+  useEffect(() => {
+    if (!allProducts || allProducts.length === 0) {
+        dispatch(fetchProducts({ limit: 25 }));
+    }
+  }, [dispatch, allProducts]);
+
 
   let uniqueTopCategories = [];
   if (categories && categories.length > 0) {
@@ -105,10 +51,32 @@ const HomePage = () => {
         uniqueTopCategories.push(category);
         seenTitles.add(englishTitle);
       }
-      if (uniqueTopCategories.length >= 5) {
-        break;
-      }
+      if (uniqueTopCategories.length >= 5) break;
     }
+  }
+
+  let featuredProducts = [];
+  if (allProducts && allProducts.length > 0) {
+    const featuredProductIds = [10, 12, 11];
+
+    featuredProducts = allProducts.filter(product => featuredProductIds.includes(product.id));
+
+    const blackTshirt = allProducts.find(p => p.id === 13 || (p.name.toLowerCase().includes("minimal kalp baskılı siyah") && p.price === 59));
+    const redTshirt = allProducts.find(p => p.id === 11 || (p.name.toLowerCase().includes("minimal kalp baskılı") && p.images[0].url.includes("3d7bac93")));
+    const whiteTshirt = allProducts.find(p => p.id === 12 || (p.name.toLowerCase().includes("minimal kalp baskılı beyaz") && p.price === 69));
+    
+    featuredProducts = [];
+    if (blackTshirt) featuredProducts.push(blackTshirt);
+    if (redTshirt) featuredProducts.push(redTshirt);
+    if (whiteTshirt) featuredProducts.push(whiteTshirt);
+
+    if (featuredProducts.length < 3 && allProducts.length > featuredProducts.length) {
+        const remainingNeeded = 3 - featuredProducts.length;
+        const existingIds = new Set(featuredProducts.map(p => p.id));
+        const additionalProducts = allProducts.filter(p => !existingIds.has(p.id)).slice(0, remainingNeeded);
+        featuredProducts = [...featuredProducts, ...additionalProducts];
+    }
+
   }
 
 
@@ -123,20 +91,28 @@ const HomePage = () => {
           <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Featured Products</h2>
           <p className="text-gray-600 mt-2 text-sm sm:text-base">Check out some of our best-selling items.</p>
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-6 sm:gap-x-6 sm:gap-y-8">
-          {featuredProductsData.map((product) => (
-            <ProductCard
-              key={product.id}
-              imageUrl={product.imageUrl}
-              tag={product.tag}
-              tagColor={product.tagColor}
-              title={product.title}
-              price={product.price}
-              oldPrice={product.oldPrice}
-              productUrl={product.productUrl}
-            />
-          ))}
-        </div>
+        {productsLoading && featuredProducts.length === 0 ? (
+            <div className="flex justify-center items-center py-10">
+                <Loader2 className="animate-spin h-10 w-10 text-blue-600" />
+            </div>
+        ) : productsErrorMsg && featuredProducts.length === 0 ? (
+            <p className="text-center text-red-500">Could not load featured products: {productsErrorMsg}</p>
+        ) : featuredProducts.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-8 sm:gap-x-6">
+            {featuredProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  id={product.id}
+                  imageUrl={product.images && product.images.length > 0 ? product.images[0].url : undefined}
+                  imageAlt={product.name}
+                  title={product.name}
+                  price={product.price}
+                />
+            ))}
+            </div>
+        ) : (
+            !productsLoading && <p className="text-center text-gray-500">No featured products available at the moment.</p>
+        )}
       </section>
 
       {(!categoriesLoading && uniqueTopCategories.length > 0) && (
@@ -168,9 +144,9 @@ const HomePage = () => {
           </div>
         </section>
       )}
-      {categoriesLoading && <div className="text-center py-8">Loading categories...</div>}
-      {categoriesError && <div className="text-center py-8 text-red-500">Error loading categories: {categoriesError}</div>}
-
+      {categoriesLoading && uniqueTopCategories.length === 0 && <div className="text-center py-8">Loading top categories...</div>}
+      {categoriesError && uniqueTopCategories.length === 0 && <div className="text-center py-8 text-red-500">Error loading categories: {categoriesError}</div>}
+      
       <section className="bg-pink-50 p-6 md:p-10 lg:p-12 rounded-lg">
         <div className="flex flex-col md:flex-row items-center gap-6 md:gap-10 lg:gap-12">
           <div className="md:w-1/2 lg:w-[45%] xl:w-2/5 rounded-md overflow-hidden shadow-lg">

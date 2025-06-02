@@ -3,57 +3,58 @@ import { Link } from 'react-router-dom';
 import { ArrowRight } from 'lucide-react';
 
 const ProductCard = ({
+  id,
   imageUrl,
-  imageAlt = "Product Image",
+  imageAlt,
   tag,
-  tagColor = "bg-red-500 text-white",
+  tagColor,
   title,
   price,
   oldPrice,
-  productUrl = "#",
   className = ""
 }) => {
+  const productLink = `/product/${id}`;
+
   return (
-    <div className={`bg-white rounded-lg shadow-md overflow-hidden flex flex-col group ${className}`}>
+    <div className={`bg-white rounded-lg shadow-lg overflow-hidden flex flex-col group ${className} h-full transition-all duration-300 hover:shadow-xl`}>
       <div className="relative">
-        <Link to={productUrl} className="block">
+        <Link to={productLink} className="block aspect-[3/4] sm:aspect-[4/5] md:aspect-[3/4]">
           <img
-            src={imageUrl}
-            alt={imageAlt || title}
-            className="w-full h-48 sm:h-56 md:h-64 object-cover group-hover:opacity-90 transition-opacity duration-300"
+            src={imageUrl || 'https://via.placeholder.com/400x500.png?text=No+Image'}
+            alt={imageAlt || title || "Product Image"}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         </Link>
         {tag && (
-          <span className={`absolute top-3 left-3 text-xs font-semibold px-2.5 py-1 rounded ${tagColor}`}>
-            {tag}
+          <span className={`absolute top-3 left-3 text-xs font-bold px-2.5 py-1 rounded-md shadow ${tagColor || 'bg-red-500 text-white'}`}>
+            {tag.toUpperCase()}
           </span>
         )}
       </div>
 
-      <div className="p-4 sm:p-5 flex flex-col flex-grow">
-        <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-1 truncate group-hover:text-blue-600 transition-colors">
-          <Link to={productUrl}>{title}</Link>
+      <div className="p-4 flex flex-col flex-grow">
+        <h3 className="text-sm font-semibold text-gray-800 mb-1.5 h-10 leading-5 line-clamp-2 group-hover:text-blue-600 transition-colors">
+          <Link to={productLink}>{title}</Link>
         </h3>
 
-        <div className="flex items-baseline gap-2 mb-3">
-          {price && (
-            <p className="text-lg sm:text-xl font-bold text-gray-900">
-              {price}
+        <div className="flex items-baseline gap-2 mb-3 mt-auto pt-2">
+          {price !== undefined && price !== null && (
+            <p className="text-lg font-bold text-gray-900">
+              ${typeof price === 'number' ? price.toFixed(2) : price}
             </p>
           )}
-          {oldPrice && (
+          {oldPrice !== undefined && oldPrice !== null && (
             <p className="text-sm text-red-500 line-through">
-              {oldPrice}
+              ${typeof oldPrice === 'number' ? oldPrice.toFixed(2) : oldPrice}
             </p>
           )}
         </div>
 
         <Link
-          to={productUrl}
-          className="mt-auto inline-flex items-center justify-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+          to={productLink}
+          className="w-full mt-2 text-center bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-3 rounded-md text-xs sm:text-sm transition-colors"
         >
-          View Details
-          <ArrowRight size={16} strokeWidth={2} />
+          View Details <ArrowRight size={14} className="inline ml-1" />
         </Link>
       </div>
     </div>

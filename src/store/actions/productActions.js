@@ -1,49 +1,35 @@
-export const SET_CATEGORIES = 'SET_CATEGORIES';
-export const SET_PRODUCT_LIST = 'SET_PRODUCT_LIST';
-export const SET_TOTAL_PRODUCTS = 'SET_TOTAL_PRODUCTS';
-export const SET_FETCH_STATE = 'SET_FETCH_STATE';
-export const SET_LIMIT = 'SET_LIMIT';
-export const SET_OFFSET = 'SET_OFFSET';
-export const SET_FILTER = 'SET_FILTER';
+import axiosInstance from "../../api/axiosInstance";
 
-export const FETCH_STATES = {
-  NOT_FETCHED: "NOT_FETCHED",
-  FETCHING: "FETCHING",
-  FETCHED: "FETCHED",
-  FAILED: "FAILED",
+export const FETCH_PRODUCTS_REQUEST = 'FETCH_PRODUCTS_REQUEST';
+export const FETCH_PRODUCTS_SUCCESS = 'FETCH_PRODUCTS_SUCCESS';
+export const FETCH_PRODUCTS_FAILURE = 'FETCH_PRODUCTS_FAILURE';
+
+export const fetchProductsRequest = () => ({
+  type: FETCH_PRODUCTS_REQUEST,
+});
+
+export const fetchProductsSuccess = (data) => ({
+  type: FETCH_PRODUCTS_SUCCESS,
+  payload: data,
+});
+
+export const fetchProductsFailure = (error) => ({
+  type: FETCH_PRODUCTS_FAILURE,
+  payload: error,
+});
+
+export const fetchProducts = (queryParams = {}) => async (dispatch) => {
+  dispatch(fetchProductsRequest());
+  try {
+    const response = await axiosInstance.get('/products', { params: queryParams });
+    if (response.data && Array.isArray(response.data.products) && typeof response.data.total === 'number') {
+        dispatch(fetchProductsSuccess(response.data));
+    } else {
+        throw new Error("Invalid data structure received from /products endpoint");
+    }
+  } catch (error) {
+    const errorMessage = error.response?.data?.message || error.message || "Failed to fetch products";
+    dispatch(fetchProductsFailure(errorMessage));
+    console.error("Error fetching products:", errorMessage);
+  }
 };
-
-export const setCategories = (categories) => ({
-  type: SET_CATEGORIES,
-  payload: categories,
-});
-
-export const setProductList = (products) => ({
-  type: SET_PRODUCT_LIST,
-  payload: products,
-});
-
-export const setTotalProducts = (total) => ({
-  type: SET_TOTAL_PRODUCTS,
-  payload: total,
-});
-
-export const setFetchState = (fetchState) => ({
-  type: SET_FETCH_STATE,
-  payload: fetchState,
-});
-
-export const setLimit = (limit) => ({
-  type: SET_LIMIT,
-  payload: limit,
-});
-
-export const setOffset = (offset) => ({
-  type: SET_OFFSET,
-  payload: offset,
-});
-
-export const setFilter = (filter) => ({
-  type: SET_FILTER,
-  payload: filter,
-});
