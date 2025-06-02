@@ -33,11 +33,45 @@ const featuredProductsData = [
   },
 ];
 
-const slugify = (text) => {
-  if (!text) return '';
-  return text
-    .toString()
+const categoryTitleToEnglishMap = {
+  'Tişört': 'T-shirt',
+  'Ayakkabı': 'Shoes',
+  'Ceket': 'Jackets',
+  'Elbise': 'Dresses',
+  'Etek': 'Skirts',
+  'Gömlek': 'Shirts',
+  'Kazak': 'Sweaters',
+  'Pantolon': 'Pants',
+  'Pantalon': 'Pants',
+};
+
+const categoryTitleToSlugMap = {
+  'Tişört': 't-shirt',
+  'Ayakkabı': 'shoes',
+  'Ceket': 'jackets',
+  'Elbise': 'dresses',
+  'Etek': 'skirts',
+  'Gömlek': 'shirts',
+  'Kazak': 'sweaters',
+  'Pantolon': 'pants',
+  'Pantalon': 'pants',
+};
+
+const slugifyCategoryTitle = (title) => {
+  if (!title) return 'category';
+  const correctedTitle = (title.toLowerCase() === 'pantalon') ? 'Pantolon' : title;
+  
+  if (categoryTitleToSlugMap[correctedTitle]) {
+    return categoryTitleToSlugMap[correctedTitle];
+  }
+  return correctedTitle
     .toLowerCase()
+    .replace(/ı/g, 'i')
+    .replace(/ğ/g, 'g')
+    .replace(/ü/g, 'u')
+    .replace(/ş/g, 's')
+    .replace(/ö/g, 'o')
+    .replace(/ç/g, 'c')
     .replace(/\s+/g, '-')
     .replace(/[^\w-]+/g, '')
     .replace(/--+/g, '-')
@@ -45,12 +79,38 @@ const slugify = (text) => {
     .replace(/-+$/, '');
 };
 
+const genderToUrlKey = (genderApiValue) => {
+  if (genderApiValue === 'k') return 'women';
+  if (genderApiValue === 'e') return 'men';
+  return 'unisex';
+};
+
+const displayCategoryTitleInEnglish = (turkishTitle) => {
+  if (!turkishTitle) return 'Category';
+  const correctedTitle = (turkishTitle.toLowerCase() === 'pantalon') ? 'Pantolon' : turkishTitle;
+  return categoryTitleToEnglishMap[correctedTitle] || correctedTitle;
+};
+
+
 const HomePage = () => {
   const { categories, loading: categoriesLoading, error: categoriesError } = useSelector(state => state.category);
 
-  const topCategories = [...categories]
-    .sort((a, b) => (b.rating || 0) - (a.rating || 0))
-    .slice(0, 5);
+  let uniqueTopCategories = [];
+  if (categories && categories.length > 0) {
+    const sortedCategories = [...categories].sort((a, b) => (b.rating || 0) - (a.rating || 0));
+    const seenTitles = new Set();
+    for (const category of sortedCategories) {
+      const englishTitle = displayCategoryTitleInEnglish(category.title);
+      if (!seenTitles.has(englishTitle)) {
+        uniqueTopCategories.push(category);
+        seenTitles.add(englishTitle);
+      }
+      if (uniqueTopCategories.length >= 5) {
+        break;
+      }
+    }
+  }
+
 
   return (
     <div className="flex flex-col space-y-10 md:space-y-16">
@@ -79,29 +139,29 @@ const HomePage = () => {
         </div>
       </section>
 
-      {(!categoriesLoading && topCategories.length > 0) && (
+      {(!categoriesLoading && uniqueTopCategories.length > 0) && (
         <section>
           <div className="text-center mb-8 md:mb-12">
             <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">Top Categories</h2>
             <p className="text-gray-600 mt-2 text-sm sm:text-base">Explore our most popular categories.</p>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6">
-            {topCategories.map(category => (
+            {uniqueTopCategories.map(category => (
               <Link
                 key={category.id}
-                to={`/shop/${category.gender === 'k' ? 'kadin' : 'erkek'}/${slugify(category.title)}/${category.id}`}
+                to={`/shop/${genderToUrlKey(category.gender)}/${slugifyCategoryTitle(category.title)}/${category.id}`}
                 className="group flex flex-col items-center text-center p-4 bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow duration-300"
               >
                 <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-2 border-transparent group-hover:border-blue-500 transition-all mb-3">
                   <img 
                     src={category.img}
-                    alt={category.title} 
+                    alt={displayCategoryTitleInEnglish(category.title)}
                     className="w-full h-full object-cover"
                     onError={(e) => { e.target.onerror = null; e.target.src="https://via.placeholder.com/150.png?text=No+Image" }}
                   />
                 </div>
                 <h3 className="text-sm sm:text-base font-semibold text-gray-800 group-hover:text-blue-600 transition-colors">
-                  {category.title}
+                  {displayCategoryTitleInEnglish(category.title)}
                 </h3>
               </Link>
             ))}
