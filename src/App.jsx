@@ -1,7 +1,10 @@
 import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { fetchRolesIfNeeded, verifyTokenOnAppLoad } from './store/actions/clientActions';
 import { BrowserRouter as Router, Switch, Route, useHistory } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+
+import { verifyTokenOnAppLoad, fetchRolesIfNeeded } from './store/actions/clientActions';
+import { fetchCategories } from './store/actions/categoryActions';
+
 import Header from './layout/Header';
 import Footer from './layout/Footer';
 import PageContent from './layout/PageContent';
@@ -16,23 +19,31 @@ import LoginPage from './pages/LoginPage';
 
 function AppContent() {
   const dispatch = useDispatch();
-  const rolesFromStore = useSelector(state => state.client.roles);
-  const userIsAuthenticated = useSelector(state => state.client.isAuthenticated);
-  const tokenIsBeingVerified = useSelector(state => state.client.isVerifyingToken);
+  const history = useHistory();
+
+  const { isAuthenticated, loading: clientLoading, roles: rolesFromStore } = useSelector(state => state.client);
+  const { categories: categoriesFromStore, loading: categoriesLoading } = useSelector(state => state.category);
 
   useEffect(() => {
     const tokenInStorage = localStorage.getItem('authToken');
-    if (tokenInStorage && !userIsAuthenticated && !tokenIsBeingVerified) {
+    if (tokenInStorage && !isAuthenticated && !clientLoading) {
       dispatch(verifyTokenOnAppLoad());
-    } else if (!tokenInStorage && userIsAuthenticated) {
+    } else if (!tokenInStorage && isAuthenticated) {
     }
-  }, [dispatch, userIsAuthenticated, tokenIsBeingVerified]);
+  }, [dispatch, isAuthenticated, clientLoading, history]);
 
   useEffect(() => {
     if (!rolesFromStore || rolesFromStore.length === 0) {
       dispatch(fetchRolesIfNeeded());
     }
   }, [dispatch, rolesFromStore]);
+
+  useEffect(() => {
+    if ((!categoriesFromStore || categoriesFromStore.length === 0) && !categoriesLoading) {
+      dispatch(fetchCategories());
+    }
+  }, [dispatch, categoriesFromStore, categoriesLoading]);
+
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -41,6 +52,7 @@ function AppContent() {
         <Switch>
           <Route exact path="/"> <HomePage /> </Route>
           <Route exact path="/shop"> <ShopPage /> </Route>
+          <Route exact path="/shop/:gender/:categoryName/:categoryId"> <ShopPage /> </Route>
           <Route path="/product/:productId"> <ProductDetailPage /> </Route>
           <Route exact path="/contact"> <ContactPage /> </Route>
           <Route exact path="/team"> <TeamPage /> </Route>
@@ -59,7 +71,7 @@ function App() {
         <Router>
             <AppContent />
         </Router>
-    )
+    );
 }
 
 export default App;
