@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { BrowserRouter as Router, Switch, Route, useHistory } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 
-import { verifyTokenOnAppLoad, fetchRolesIfNeeded } from './store/actions/clientActions';
+import { verifyTokenOnAppLoad, fetchRolesIfNeeded, logoutUser } from './store/actions/clientActions';
 import { fetchCategories } from './store/actions/categoryActions';
 
 import Header from './layout/Header';
@@ -29,14 +29,16 @@ function AppContent() {
     if (tokenInStorage && !isAuthenticated && !clientLoading) {
       dispatch(verifyTokenOnAppLoad());
     } else if (!tokenInStorage && isAuthenticated) {
+      console.warn("Inconsistent state: Authenticated in Redux but no token in localStorage. Logging out.");
+      dispatch(logoutUser(history));
     }
   }, [dispatch, isAuthenticated, clientLoading, history]);
 
   useEffect(() => {
-    if (!rolesFromStore || rolesFromStore.length === 0) {
+    if ((!rolesFromStore || rolesFromStore.length === 0) && !clientLoading) {
       dispatch(fetchRolesIfNeeded());
     }
-  }, [dispatch, rolesFromStore]);
+  }, [dispatch, rolesFromStore, clientLoading]);
 
   useEffect(() => {
     if ((!categoriesFromStore || categoriesFromStore.length === 0) && !categoriesLoading) {
@@ -44,16 +46,28 @@ function AppContent() {
     }
   }, [dispatch, categoriesFromStore, categoriesLoading]);
 
-
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
       <PageContent>
         <Switch>
           <Route exact path="/"> <HomePage /> </Route>
-          <Route exact path="/shop"> <ShopPage /> </Route>
-          <Route exact path="/shop/:gender/:categoryName/:categoryId"> <ShopPage /> </Route>
-          <Route path="/product/:productId"> <ProductDetailPage /> </Route>
+          
+          <Route 
+            exact 
+            path="/shop" 
+            render={({ location }) => <ShopPage key={location.pathname} />}
+          />
+          <Route 
+            exact 
+            path="/shop/:gender/:categoryName/:categoryId" 
+            render={({ location }) => <ShopPage key={location.pathname} />}
+          />
+          
+          <Route path="/shop/:gender/:categoryName/:categoryId/:productNameSlug/:productId">
+            <ProductDetailPage />
+          </Route>
+
           <Route exact path="/contact"> <ContactPage /> </Route>
           <Route exact path="/team"> <TeamPage /> </Route>
           <Route exact path="/about"> <AboutPage /> </Route>

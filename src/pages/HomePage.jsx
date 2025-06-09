@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import Slider from '../components/Slider';
 import ProductCard from '../components/ProductCard';
 import { Link } from 'react-router-dom';
-import { useSelector, useDispatch } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux'; 
 import { fetchProducts } from '../store/actions/productActions';
 import { Loader2 } from 'lucide-react';
 
@@ -13,7 +13,7 @@ const categoryTitleToEnglishMap = {
 const displayCategoryTitleInEnglish = (turkishTitle) => {
   if (!turkishTitle) return 'Category';
   const correctedTitle = (turkishTitle.toLowerCase() === 'pantalon') ? 'Pantolon' : turkishTitle;
-  return categoryTitleToEnglishMap[correctedTitle] || correctedTitle;
+  return categoryTitleToEnglishMap[correctedTitle] || turkishTitle;
 };
 const slugifyCategoryTitle = (title) => {
   if (!title) return 'category';
@@ -40,7 +40,6 @@ const HomePage = () => {
     }
   }, [dispatch, allProducts]);
 
-
   let uniqueTopCategories = [];
   if (categories && categories.length > 0) {
     const sortedCategories = [...categories].sort((a, b) => (b.rating || 0) - (a.rating || 0));
@@ -57,10 +56,6 @@ const HomePage = () => {
 
   let featuredProducts = [];
   if (allProducts && allProducts.length > 0) {
-    const featuredProductIds = [10, 12, 11];
-
-    featuredProducts = allProducts.filter(product => featuredProductIds.includes(product.id));
-
     const blackTshirt = allProducts.find(p => p.id === 13 || (p.name.toLowerCase().includes("minimal kalp baskılı siyah") && p.price === 59));
     const redTshirt = allProducts.find(p => p.id === 11 || (p.name.toLowerCase().includes("minimal kalp baskılı") && p.images[0].url.includes("3d7bac93")));
     const whiteTshirt = allProducts.find(p => p.id === 12 || (p.name.toLowerCase().includes("minimal kalp baskılı beyaz") && p.price === 69));
@@ -76,7 +71,6 @@ const HomePage = () => {
         const additionalProducts = allProducts.filter(p => !existingIds.has(p.id)).slice(0, remainingNeeded);
         featuredProducts = [...featuredProducts, ...additionalProducts];
     }
-
   }
 
 
@@ -99,16 +93,14 @@ const HomePage = () => {
             <p className="text-center text-red-500">Could not load featured products: {productsErrorMsg}</p>
         ) : featuredProducts.length > 0 ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-5 gap-y-8 sm:gap-x-6">
+            
             {featuredProducts.map((product) => (
                 <ProductCard
                   key={product.id}
-                  id={product.id}
-                  imageUrl={product.images && product.images.length > 0 ? product.images[0].url : undefined}
-                  imageAlt={product.name}
-                  title={product.name}
-                  price={product.price}
+                  product={product}
                 />
             ))}
+            
             </div>
         ) : (
             !productsLoading && <p className="text-center text-gray-500">No featured products available at the moment.</p>
@@ -181,6 +173,7 @@ const HomePage = () => {
           </div>
         </div>
       </section>
+      
     </div>
   );
 };

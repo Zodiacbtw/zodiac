@@ -1,63 +1,61 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { useSelector } from 'react-redux';
 
-const ProductCard = ({
-  id,
-  imageUrl,
-  imageAlt,
-  tag,
-  tagColor,
-  title,
-  price,
-  oldPrice,
-  className = ""
-}) => {
-  const productLink = `/product/${id}`;
+const slugify = (text) => {
+  if (!text) return '';
+
+  const a = 'àáâäæãåāăąçćčđďèéêëēėęěğǵḧîïíīįìłḿñńǹňôöòóœøōõőṕŕřßśšşșťțûüùúūǘůűųẃẍÿýžźż·/_,:;'
+  const b = 'aaaaaaaaaacccddeeeeeeeegghiiiiiilmnnnnoooooooooprrsssssttuuuuuuuuuwxyyzzz------'
+  const p = new RegExp(a.split('').join('|'), 'g')
+
+  return text.toString().toLowerCase()
+    .replace(/ı/g, 'i')
+    .replace(/\s+/g, '-')
+    .replace(p, c => b.charAt(a.indexOf(c)))
+    .replace(/&/g, '-and-')
+    .replace(/[^\w-]+/g, '')
+    .replace(/--+/g, '-')
+    .replace(/^-+/, '')
+    .replace(/-+$/, '')
+};
+
+const genderToUrlKey = (genderApiValue) => (genderApiValue === 'k' ? 'women' : genderApiValue === 'e' ? 'men' : 'unisex');
+
+const ProductCard = ({ product }) => {
+  if (!product) {
+    return null;
+  }
+
+  const { categories } = useSelector(state => state.category);
+  const category = categories.find(cat => cat.id === product.category_id);
+
+  if (!category) {
+    return null;
+  }
+
+  const gender = genderToUrlKey(category.gender);
+  const categoryName = slugify(category.title); 
+  const productNameSlug = slugify(product.name);
+  const productDetailUrl = `/shop/${gender}/${categoryName}/${category.id}/${productNameSlug}/${product.id}`;
 
   return (
-    <div className={`bg-white rounded-lg shadow-lg overflow-hidden flex flex-col group ${className} h-full transition-all duration-300 hover:shadow-xl`}>
-      <div className="relative">
-        <Link to={productLink} className="block aspect-[3/4] sm:aspect-[4/5] md:aspect-[3/4]">
-          <img
-            src={imageUrl || 'https://via.placeholder.com/400x500.png?text=No+Image'}
-            alt={imageAlt || title || "Product Image"}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-          />
-        </Link>
-        {tag && (
-          <span className={`absolute top-3 left-3 text-xs font-bold px-2.5 py-1 rounded-md shadow ${tagColor || 'bg-red-500 text-white'}`}>
-            {tag.toUpperCase()}
-          </span>
-        )}
-      </div>
-
-      <div className="p-4 flex flex-col flex-grow">
-        <h3 className="text-sm font-semibold text-gray-800 mb-1.5 h-10 leading-5 line-clamp-2 group-hover:text-blue-600 transition-colors">
-          <Link to={productLink}>{title}</Link>
-        </h3>
-
-        <div className="flex items-baseline gap-2 mb-3 mt-auto pt-2">
-          {price !== undefined && price !== null && (
-            <p className="text-lg font-bold text-gray-900">
-              ${typeof price === 'number' ? price.toFixed(2) : price}
-            </p>
-          )}
-          {oldPrice !== undefined && oldPrice !== null && (
-            <p className="text-sm text-red-500 line-through">
-              ${typeof oldPrice === 'number' ? oldPrice.toFixed(2) : oldPrice}
-            </p>
-          )}
+    <Link to={productDetailUrl} className="group block">
+      <div className="border rounded-lg p-4 transition-all duration-300 ease-in-out 
+                      cursor-pointer group-hover:shadow-xl group-hover:scale-105 h-full flex flex-col">
+        <div className="relative w-full h-72 mb-4">
+            <img
+            src={product.images?.[0]?.url || 'https://via.placeholder.com/300x400'}
+            alt={product.name}
+            className="w-full h-full object-cover rounded-md"
+            />
         </div>
-
-        <Link
-          to={productLink}
-          className="w-full mt-2 text-center bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-3 rounded-md text-xs sm:text-sm transition-colors"
-        >
-          View Details <ArrowRight size={14} className="inline ml-1" />
-        </Link>
+        <div className="flex-grow flex flex-col">
+            <h3 className="text-lg font-semibold text-gray-800 truncate flex-grow">{product.name}</h3>
+            <p className="text-xl font-bold text-blue-600 mt-2">{product.price.toFixed(2)} ₺</p>
+        </div>
       </div>
-    </div>
+    </Link>
   );
 };
 
