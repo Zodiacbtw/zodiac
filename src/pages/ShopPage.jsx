@@ -164,6 +164,7 @@ const ShopPage = () => {
             <div className="mt-12 flex justify-center">
               <nav className="flex items-center rounded-md shadow-sm" aria-label="Pagination">
                 <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="relative inline-flex items-center px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"><ChevronLeft size={18} /></button>
+                
                 {paginationRange && paginationRange.map((pageNumber, index) => {
                   if (pageNumber === DOTS) {
                     return <span key={`${DOTS}-${index}`} className="relative inline-flex items-center px-4 py-2 border-y border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>;
@@ -172,7 +173,7 @@ const ShopPage = () => {
                     <button key={pageNumber} onClick={() => handlePageChange(pageNumber)} aria-current={currentPage === pageNumber ? "page" : undefined} className={`relative inline-flex items-center px-4 py-2 border-y text-sm font-medium ${currentPage === pageNumber ? 'z-10 border-blue-500 bg-blue-50 text-blue-600' : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'}`}>{pageNumber}</button>
                   );
                 })}
-                <span className="hidden">Page {currentPage} of {totalPages}</span>
+                
                 <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="relative inline-flex items-center px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"><ChevronRight size={18} /></button>
               </nav>
             </div>

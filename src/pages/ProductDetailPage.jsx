@@ -2,7 +2,8 @@ import React, { useEffect } from 'react';
 import { useParams, useHistory, Link } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProductById } from '../store/actions/productActions';
-import { Loader2, ChevronLeft, Star } from 'lucide-react';
+import { addToCart } from '../store/actions/shoppingCartActions';
+import { Loader2, ChevronLeft, Star, ShoppingCart } from 'lucide-react';
 
 const ProductDetailPage = () => {
   const { productId } = useParams();
@@ -16,6 +17,13 @@ const ProductDetailPage = () => {
       dispatch(fetchProductById(productId));
     }
   }, [productId, dispatch]);
+
+  const handleAddToCart = () => {
+    if (activeProduct) {
+      dispatch(addToCart(activeProduct));
+      alert(`"${activeProduct.name}" sepete eklendi!`);
+    }
+  };
 
   if (loading) {
     return (
@@ -73,7 +81,11 @@ const ProductDetailPage = () => {
             Stock: <span className="font-semibold text-green-700">{activeProduct.stock} available</span>
           </div>
 
-          <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors">
+          <button 
+            onClick={handleAddToCart}
+            className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
+          >
+            <ShoppingCart size={20} />
             Add to Cart
           </button>
         </div>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, NavLink } from 'react-router-dom';
 import { Search, User, ShoppingCart, Menu, X, ChevronDown, UserPlus } from 'lucide-react';
 import { useSelector } from 'react-redux';
 
@@ -64,15 +64,18 @@ const genderDisplay = (genderApiValue) => {
 const displayCategoryTitleInEnglish = (turkishTitle) => {
   if (!turkishTitle) return 'Category';
   const correctedTitle = (turkishTitle.toLowerCase() === 'pantalon') ? 'Pantolon' : turkishTitle;
-  return categoryTitleToEnglishMap[correctedTitle] || correctedTitle;
+  return categoryTitleToEnglishMap[correctedTitle] || turkishTitle;
 };
 
 
 const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isShopDropdownOpen, setIsShopDropdownOpen] = useState(false); 
+  const [isCartDropdownOpen, setIsCartDropdownOpen] = useState(false);
   
   const { categories, loading: categoriesLoading } = useSelector(state => state.category);
+  const { cart: cartItems } = useSelector(state => state.shoppingCart);
+  const totalItemCount = cartItems.reduce((total, item) => total + item.count, 0);
 
   const categorizedByGender = categories.reduce((acc, category) => {
     const genderKey = genderDisplay(category.gender);
@@ -103,26 +106,28 @@ const Header = () => {
 
           <nav className="hidden md:flex items-center md:space-x-5 lg:space-x-7">
             {navLinks.map((link) => (
-              <Link
+              <NavLink
                 key={link.name}
                 to={link.path}
+                exact
                 className="text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors"
+                activeClassName="text-blue-600"
               >
                 {link.name}
-              </Link>
+              </NavLink>
             ))}
-            <div className="relative">
+            <div 
+              className="relative pb-4 -mb-4" //
+              onMouseEnter={() => setIsShopDropdownOpen(true)}
+              onMouseLeave={() => setIsShopDropdownOpen(false)}
+            >
               <button
-                onClick={() => setIsShopDropdownOpen(prev => !prev)}
-                onMouseEnter={() => setIsShopDropdownOpen(true)}
                 className="flex items-center text-sm font-medium text-gray-500 hover:text-blue-600 transition-colors focus:outline-none"
               >
                 Shop <ChevronDown size={16} className={`ml-1 transform transition-transform duration-200 ${isShopDropdownOpen ? 'rotate-180' : 'rotate-0'}`} />
               </button>
               {isShopDropdownOpen && (
                 <div 
-                  onMouseEnter={() => setIsShopDropdownOpen(true)}
-                  onMouseLeave={() => setIsShopDropdownOpen(false)}
                   className="absolute left-1/2 -translate-x-1/2 mt-2 w-auto min-w-[30rem] md:min-w-[36rem] lg:min-w-[42rem] origin-top-center"
                 >
                   <div className="rounded-md shadow-2xl bg-white ring-1 ring-black ring-opacity-5">
@@ -175,12 +180,54 @@ const Header = () => {
             <Link to="/login" className="text-gray-500 hover:text-blue-600" title="Login">
               <User size={20} strokeWidth={1.5} />
             </Link>
-            <button className="text-gray-500 hover:text-blue-600 relative" title="Shopping Cart">
-              <ShoppingCart size={20} strokeWidth={1.5} />
-              <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
-                3
-              </span>
-            </button>
+            <div 
+              className="relative pb-4 -mb-4"
+              onMouseEnter={() => setIsCartDropdownOpen(true)}
+              onMouseLeave={() => setIsCartDropdownOpen(false)}
+            >
+              <Link to="/cart" className="text-gray-500 hover:text-blue-600 relative block p-2" title="Shopping Cart">
+                <ShoppingCart size={20} strokeWidth={1.5} />
+                {totalItemCount > 0 && (
+                  <span className="absolute top-0 right-0 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
+                    {totalItemCount}
+                  </span>
+                )}
+              </Link>
+              {isCartDropdownOpen && cartItems && ( 
+                  <div className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-2xl p-4 border z-50">
+                    <h3 className="font-bold text-lg mb-3 border-b pb-2">Sepetim ({totalItemCount} Ürün)</h3>
+                    <div className="max-h-80 overflow-y-auto pr-2">
+                      {cartItems.length > 0 ? (
+                        cartItems.map(item => (
+                          <div key={item.product.id} className="flex items-start py-3 border-b last:border-b-0">
+                            <img src={item.product.images[0].url} alt={item.product.name} className="w-16 h-16 object-cover rounded-md mr-4"/>
+                            <div className="flex-1">
+                              <p className="font-semibold text-sm leading-tight">{item.product.name}</p>
+                              <p className="text-xs text-gray-500 mt-1">Beden: {item.product.size || "Tek Ebat"}</p>
+                              <p className="text-xs text-gray-500">Adet: {item.count}</p>
+                            </div>
+                            <div className="text-right">
+                                <p className="font-bold text-orange-600">{item.product.price.toFixed(2)} TL</p>
+                            </div>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-center text-gray-500 py-10">Sepetiniz boş.</p>
+                      )}
+                    </div>
+                    {cartItems.length > 0 && (
+                      <div className="mt-4 flex gap-3">
+                        <Link to="/cart" className="flex-1 text-center bg-gray-100 text-gray-800 py-2 rounded-md hover:bg-gray-200 transition-colors font-medium">
+                          Sepete Git
+                        </Link>
+                        <Link to="/checkout" className="flex-1 text-center bg-orange-500 text-white py-2 rounded-md hover:bg-orange-600 transition-colors font-semibold">
+                          Siparişi Tamamla
+                        </Link>
+                      </div>
+                    )}
+                  </div>
+              )}
+            </div>
           </div>
 
           <div className="md:hidden flex items-center">
@@ -235,7 +282,14 @@ const Header = () => {
             <div className="flex justify-start items-center space-x-6 pt-4 pl-3 mt-3 border-t">
                 <button className="text-gray-500 hover:text-blue-600"> <Search size={22} strokeWidth={1.5}/> </button>
                 <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="text-gray-500 hover:text-blue-600" title="Login"> <User size={22} strokeWidth={1.5}/> </Link>
-                <button className="text-gray-500 hover:text-blue-600 relative" title="Shopping Cart"> <ShoppingCart size={22} strokeWidth={1.5}/> <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">3</span></button>
+                <Link to="/cart" className="text-gray-500 hover:text-blue-600 relative" title="Shopping Cart"> 
+                  <ShoppingCart size={22} strokeWidth={1.5}/>
+                  {totalItemCount > 0 && (
+                    <span className="absolute -top-1.5 -right-1.5 bg-red-500 text-white text-[10px] rounded-full h-4 w-4 flex items-center justify-center">
+                      {totalItemCount}
+                    </span>
+                  )}
+                </Link>
             </div>
           </nav>
         </div>
