@@ -16,6 +16,7 @@ import TeamPage from './pages/TeamPage';
 import AboutPage from './pages/AboutPage';
 import SignUpPage from './pages/SignUpPage';
 import LoginPage from './pages/LoginPage';
+import CartPage from './pages/CartPage';
 
 function AppContent() {
   const dispatch = useDispatch();
@@ -67,6 +68,8 @@ function AppContent() {
           <Route path="/shop/:gender/:categoryName/:categoryId/:productNameSlug/:productId">
             <ProductDetailPage />
           </Route>
+          
+          <Route exact path="/cart"> <CartPage /> </Route>
 
           <Route exact path="/contact"> <ContactPage /> </Route>
           <Route exact path="/team"> <TeamPage /> </Route>
