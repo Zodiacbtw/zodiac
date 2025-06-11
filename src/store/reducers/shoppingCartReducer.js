@@ -1,12 +1,14 @@
 import {
   SET_CART, SET_PAYMENT, SET_ADDRESS, ADD_TO_CART, REMOVE_FROM_CART,
-  UPDATE_CART_ITEM_COUNT, TOGGLE_CART_ITEM_CHECKED
+  UPDATE_CART_ITEM_COUNT, TOGGLE_CART_ITEM_CHECKED,
+  APPLY_DISCOUNT, REMOVE_DISCOUNT
 } from '../actions/shoppingCartActions';
 
 const initialState = {
   cart: [],
   payment: {},
   address: {},
+  discount: null,
 };
 
 const shoppingCartReducer = (state = initialState, action) => {
@@ -72,6 +74,18 @@ const shoppingCartReducer = (state = initialState, action) => {
       };
     }
       
+    case APPLY_DISCOUNT:
+      return {
+        ...state,
+        discount: action.payload,
+      };
+
+    case REMOVE_DISCOUNT:
+      return {
+        ...state,
+        discount: null,
+      };
+
     default:
       return state;
   }

@@ -1,15 +1,32 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { updateCartItemCount, removeFromCart, toggleCartItemChecked } from '../store/actions/shoppingCartActions';
-import { Plus, Minus, Trash2 } from 'lucide-react';
+import {
+    updateCartItemCount, removeFromCart, toggleCartItemChecked,
+    applyDiscount, removeDiscount
+} from '../store/actions/shoppingCartActions';
+import { Plus, Minus, Trash2, XCircle } from 'lucide-react';
+
+const validCoupons = {
+    "ZODIAC10": { code: "ZODIAC10", type: "percentage", value: 10 },
+    "ZODIAC50": { code: "ZODIAC50", type: "fixed", value: 60 },
+};
 
 const CartPage = () => {
     const dispatch = useDispatch();
-    const cartItems = useSelector(state => state.shoppingCart.cart);
+    const { cart: cartItems, discount: appliedDiscount } = useSelector(state => state.shoppingCart);
 
-    const handleQuantityChange = (productId, newCount) => {
-        dispatch(updateCartItemCount(productId, newCount));
+    const [isCouponFormVisible, setIsCouponFormVisible] = useState(false);
+    const [couponInput, setCouponInput] = useState("");
+    const [couponMessage, setCouponMessage] = useState({ text: "", type: "" });
+
+    const handleQuantityChange = (productId, currentCount, change) => {
+        const newCount = currentCount + change;
+        if (newCount <= 0) {
+            handleRemoveItem(productId);
+        } else {
+            dispatch(updateCartItemCount(productId, newCount));
+        }
     };
 
     const handleRemoveItem = (productId) => {
@@ -22,11 +39,52 @@ const CartPage = () => {
         dispatch(toggleCartItemChecked(productId));
     };
 
-    const totalAmount = useMemo(() => {
-        return cartItems
-            .filter(item => item.checked)
-            .reduce((total, item) => total + (item.product.price * item.count), 0);
-    }, [cartItems]);
+    const handleApplyCoupon = () => {
+        const code = couponInput.trim().toUpperCase();
+        const coupon = validCoupons[code];
+        if (coupon) {
+            dispatch(applyDiscount(coupon));
+            setCouponMessage({ text: `"${code}" kuponu başarıyla uygulandı!`, type: "success" });
+            setIsCouponFormVisible(false);
+            setCouponInput("");
+        } else {
+            dispatch(removeDiscount());
+            setCouponMessage({ text: "Geçersiz veya süresi dolmuş kupon kodu.", type: "error" });
+        }
+    };
+    
+    const handleRemoveCoupon = () => {
+        dispatch(removeDiscount());
+        setCouponMessage({ text: "", type: "" });
+    };
+
+    const orderSummary = useMemo(() => {
+        const checkedItems = cartItems.filter(item => item.checked);
+        const productsTotal = checkedItems.reduce((total, item) => total + (item.product.price * item.count), 0);
+
+        let couponDiscountValue = 0;
+        if (appliedDiscount && productsTotal > 0) {
+            if (appliedDiscount.type === 'percentage') {
+                couponDiscountValue = (productsTotal * appliedDiscount.value) / 100;
+            } else if (appliedDiscount.type === 'fixed') {
+                couponDiscountValue = appliedDiscount.value;
+            }
+        }
+        
+        const couponDiscount = Math.min(productsTotal, couponDiscountValue);
+        const subtotal = productsTotal - couponDiscount;
+        
+        const shippingRate = 29.99;
+        const freeShippingThreshold = 300.00;
+        let finalShippingCost = 0;
+        if (productsTotal > 0 && subtotal < freeShippingThreshold) {
+            finalShippingCost = shippingRate;
+        }
+        
+        const grandTotal = subtotal + finalShippingCost;
+
+        return { productsTotal, couponDiscount, subtotal, finalShippingCost, grandTotal };
+    }, [cartItems, appliedDiscount]);
 
     const totalItemCount = cartItems.reduce((total, item) => total + item.count, 0);
 
@@ -35,7 +93,7 @@ const CartPage = () => {
             <h1 className="text-3xl font-bold mb-6">Sepetim ({totalItemCount} Ürün)</h1>
 
             {cartItems.length > 0 ? (
-                <div className="flex flex-col lg:flex-row gap-8">
+                <div className="flex flex-col lg:flex-row gap-8 items-start">
                     <div className="flex-grow">
                         <div className="space-y-4">
                             {cartItems.map(item => (
@@ -44,17 +102,17 @@ const CartPage = () => {
                                         type="checkbox"
                                         checked={item.checked}
                                         onChange={() => handleToggleChecked(item.product.id)}
-                                        className="h-5 w-5 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                                        className="h-5 w-5 rounded border-gray-300 text-orange-500 focus:ring-orange-500 cursor-pointer"
                                     />
-                                    <img src={item.product.images[0].url} alt={item.product.name} className="w-24 h-24 object-cover rounded-md" />
+                                    <img src={item.product.images[0]?.url || 'https://via.placeholder.com/150'} alt={item.product.name} className="w-24 h-24 object-cover rounded-md" />
                                     <div className="flex-grow">
                                         <p className="font-semibold text-gray-800">{item.product.name}</p>
                                         <p className="text-sm text-gray-500">Satıcı: {item.product.store_name || "Zodiac Store"}</p>
                                     </div>
                                     <div className="flex items-center border rounded-md">
-                                        <button onClick={() => handleQuantityChange(item.product.id, item.count - 1)} className="px-3 py-1 text-gray-600 hover:bg-gray-100 rounded-l-md"><Minus size={16} /></button>
+                                        <button onClick={() => handleQuantityChange(item.product.id, item.count, -1)} className="px-3 py-1 text-gray-600 hover:bg-gray-100 rounded-l-md"><Minus size={16} /></button>
                                         <span className="px-4 py-1 text-center font-medium">{item.count}</span>
-                                        <button onClick={() => handleQuantityChange(item.product.id, item.count + 1)} className="px-3 py-1 text-gray-600 hover:bg-gray-100 rounded-r-md"><Plus size={16} /></button>
+                                        <button onClick={() => handleQuantityChange(item.product.id, item.count, 1)} className="px-3 py-1 text-gray-600 hover:bg-gray-100 rounded-r-md"><Plus size={16} /></button>
                                     </div>
                                     <div className="flex flex-col items-end w-40">
                                         <p className="text-lg font-bold text-orange-600">{(item.product.price * item.count).toFixed(2)} TL</p>
@@ -67,16 +125,71 @@ const CartPage = () => {
                         </div>
                     </div>
 
-                    <div className="lg:w-1/4">
-                        <div className="bg-white p-6 rounded-lg shadow-sm border sticky top-24">
-                            <h2 className="text-xl font-bold mb-4">Sipariş Özeti</h2>
-                            <div className="flex justify-between text-lg font-semibold">
-                                <span>Toplam Tutar</span>
-                                <span>{totalAmount.toFixed(2)} TL</span>
+                    <div className="lg:w-96 w-full lg:flex-shrink-0">
+                        <div className="bg-white p-6 rounded-lg shadow-sm border sticky top-24 space-y-4">
+                            <h2 className="text-xl font-bold">Sipariş Özeti</h2>
+                            <div className="space-y-2 text-gray-700">
+                                <div className="flex justify-between items-center">
+                                    <span>Ürünlerin Toplamı</span>
+                                    <span className="font-semibold">{orderSummary.productsTotal.toFixed(2)} TL</span>
+                                </div>
+                                {orderSummary.couponDiscount > 0 && (
+                                     <div className="flex justify-between items-center">
+                                        <span>İndirim Kuponu ({appliedDiscount.code})</span>
+                                        <span className="text-green-600 font-semibold">-{orderSummary.couponDiscount.toFixed(2)} TL</span>
+                                    </div>
+                                )}
+                                <div className="flex justify-between items-center font-semibold border-t pt-2 mt-2">
+                                    <span>Ara Toplam</span>
+                                    <span>{orderSummary.subtotal.toFixed(2)} TL</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span>Kargo Toplamı</span>
+                                    <span className={orderSummary.finalShippingCost === 0 ? "text-green-600 font-semibold" : "font-semibold"}>
+                                        {orderSummary.finalShippingCost > 0 ? `${orderSummary.finalShippingCost.toFixed(2)} TL` : "Bedava"}
+                                    </span>
+                                </div>
                             </div>
-                            <p className="text-xs text-gray-500 mt-1">Sadece seçili ürünlerin toplamıdır.</p>
-                            <button className="w-full mt-6 bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-colors">
-                                Siparişi Oluştur
+                            <hr />
+                            <div className="flex justify-between text-xl font-bold">
+                                <span>Toplam</span>
+                                <span>{orderSummary.grandTotal.toFixed(2)} TL</span>
+                            </div>
+
+                            <div className="pt-2">
+                                {appliedDiscount ? (
+                                    <div className="bg-green-100 border-l-4 border-green-500 text-green-800 p-3 rounded-md flex justify-between items-center text-sm">
+                                        <p>"{appliedDiscount.code}" kuponu uygulandı.</p>
+                                        <button onClick={handleRemoveCoupon} className="text-green-800 hover:text-red-600" title="Kuponu Kaldır"><XCircle size={18} /></button>
+                                    </div>
+                                ) : isCouponFormVisible ? (
+                                    <div>
+                                        <div className="flex gap-2">
+                                            <input 
+                                                type="text"
+                                                value={couponInput}
+                                                onChange={(e) => setCouponInput(e.target.value)}
+                                                placeholder="İndirim kodunu girin"
+                                                className="flex-grow border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 text-sm p-2"
+                                            />
+                                            <button onClick={handleApplyCoupon} className="bg-gray-700 text-white px-4 rounded-md hover:bg-black text-sm font-semibold">Uygula</button>
+                                        </div>
+                                        <button onClick={() => setIsCouponFormVisible(false)} className="text-xs text-gray-500 mt-1 hover:underline">Vazgeç</button>
+                                    </div>
+                                ) : (
+                                    <button onClick={() => setIsCouponFormVisible(true)} className="w-full mt-4 border-dashed border-2 border-gray-300 text-gray-600 font-semibold py-3 rounded-lg hover:bg-gray-100 transition-colors">
+                                        + İNDİRİM KODU GİR
+                                    </button>
+                                )}
+                                {couponMessage.text && (
+                                    <p className={`text-xs mt-2 ${couponMessage.type === 'error' ? 'text-red-500' : 'text-green-600'}`}>
+                                        {couponMessage.text}
+                                    </p>
+                                )}
+                            </div>
+
+                            <button className="w-full bg-orange-500 text-white font-bold py-3 rounded-lg hover:bg-orange-600 transition-colors">
+                                Sepeti Onayla
                             </button>
                         </div>
                     </div>
