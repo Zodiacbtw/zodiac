@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useParams, useHistory, Link } from 'react-router-dom';
+import { useParams, useHistory } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProductById } from '../store/actions/productActions';
 import { addToCart } from '../store/actions/shoppingCartActions';
@@ -11,6 +11,7 @@ const ProductDetailPage = () => {
   const history = useHistory();
 
   const { activeProduct, loading, error } = useSelector(state => state.product);
+  const cartItems = useSelector(state => state.shoppingCart.cart);
 
   useEffect(() => {
     if (productId) {
@@ -20,6 +21,14 @@ const ProductDetailPage = () => {
 
   const handleAddToCart = () => {
     if (activeProduct) {
+      const itemInCart = cartItems.find(item => item.product.id === activeProduct.id);
+      const currentQuantityInCart = itemInCart ? itemInCart.count : 0;
+
+      if (currentQuantityInCart >= activeProduct.stock) {
+        alert("Üzgünüz, bu ürün için maksimum stok adedine ulaştınız!");
+        return;
+      }
+      
       dispatch(addToCart(activeProduct));
       alert(`"${activeProduct.name}" sepete eklendi!`);
     }

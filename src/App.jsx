@@ -18,6 +18,10 @@ import SignUpPage from './pages/SignUpPage';
 import LoginPage from './pages/LoginPage';
 import CartPage from './pages/CartPage';
 
+import OrderPage from './pages/OrderPage';
+import ProtectedRoute from './components/ProtectedRoute';
+
+
 function AppContent() {
   const dispatch = useDispatch();
   const history = useHistory();
@@ -70,6 +74,8 @@ function AppContent() {
           </Route>
           
           <Route exact path="/cart"> <CartPage /> </Route>
+
+          <ProtectedRoute exact path="/order" component={OrderPage} />
 
           <Route exact path="/contact"> <ContactPage /> </Route>
           <Route exact path="/team"> <TeamPage /> </Route>
