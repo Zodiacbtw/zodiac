@@ -7,24 +7,14 @@ import {
 } from '../store/actions/shoppingCartActions';
 import { Plus, Minus, Trash2, XCircle } from 'lucide-react';
 
-const slugify = (text) => {
-    if (!text) return '';
-    const a = 'àáâäæãåāăąçćčđďèéêëēėęěğǵḧîïíīįìłḿñńǹňôöòóœøōõőṕŕřßśšşșťțûüùúūǘůűųẃẍÿýžźż·/_,:;'
-    const b = 'aaaaaaaaaacccddeeeeeeeegghiiiiiilmnnnnoooooooooprrsssssttuuuuuuuuuwxyyzzz------'
-    const p = new RegExp(a.split('').join('|'), 'g')
-    return text.toString().toLowerCase().replace(/ı/g, 'i').replace(/\s+/g, '-').replace(p, c => b.charAt(a.indexOf(c))).replace(/&/g, '-and-').replace(/[^\w-]+/g, '').replace(/--+/g, '-').replace(/^-+/, '').replace(/-+$/, '')
-};
-const genderToUrlKey = (genderApiValue) => (genderApiValue === 'k' ? 'women' : 'men');
-
 const validCoupons = {
     "ZODIAC10": { code: "ZODIAC10", type: "percentage", value: 10 },
-    "ZODIAC50": { code: "ZODIAC50", type: "fixed", value: 50 },
+    "ZODIAC50": { code: "ZODIAC50", type: "fixed", value: 60 },
 };
 
 const CartPage = () => {
     const dispatch = useDispatch();
     const { cart: cartItems, discount: appliedDiscount } = useSelector(state => state.shoppingCart);
-    const { categories } = useSelector(state => state.category);
 
     const [isCouponFormVisible, setIsCouponFormVisible] = useState(false);
     const [couponInput, setCouponInput] = useState("");
@@ -33,12 +23,10 @@ const CartPage = () => {
     const handleQuantityChange = (productId, currentCount, change) => {
         const item = cartItems.find(item => item.product.id === productId);
         if (!item) return;
-
         if (change > 0 && (currentCount + change) > item.product.stock) {
             alert(`Stokta sadece ${item.product.stock} adet ürün bulunmaktadır.`);
             return;
         }
-
         const newCount = currentCount + change;
         if (newCount <= 0) {
             handleRemoveItem(productId);
@@ -109,15 +97,7 @@ const CartPage = () => {
                 <div className="flex flex-col lg:flex-row gap-8 items-start">
                     <div className="flex-grow">
                         <div className="space-y-4">
-                            {cartItems.map(item => {
-                                const category = categories.find(cat => cat.id === item.product.category_id);
-                                if (!category) {
-                                    console.warn(`Product with ID ${item.product.id} has an invalid category. It will not be rendered.`);
-                                    return null;
-                                }
-                                const productDetailUrl = `/shop/${genderToUrlKey(category.gender)}/${slugify(category.title)}/${item.product.id}/${slugify(item.product.name)}`;
-
-                                return (
+                            {cartItems.map(item => (
                                 <div key={item.product.id} className="bg-white p-4 rounded-lg shadow-sm border flex items-center gap-4">
                                     <input
                                         type="checkbox"
@@ -125,13 +105,9 @@ const CartPage = () => {
                                         onChange={() => handleToggleChecked(item.product.id)}
                                         className="h-5 w-5 rounded border-gray-300 text-orange-500 focus:ring-orange-500 cursor-pointer"
                                     />
-                                    <Link to={productDetailUrl}>
-                                        <img src={item.product.images[0]?.url || 'https://via.placeholder.com/150'} alt={item.product.name} className="w-24 h-24 object-cover rounded-md hover:opacity-80 transition-opacity" />
-                                    </Link>
+                                    <img src={item.product.images[0]?.url || 'https://via.placeholder.com/150'} alt={item.product.name} className="w-24 h-24 object-cover rounded-md" />
                                     <div className="flex-grow">
-                                        <Link to={productDetailUrl} className="font-semibold text-gray-800 hover:text-blue-600 transition-colors">
-                                            {item.product.name}
-                                        </Link>
+                                        <p className="font-semibold text-gray-800">{item.product.name}</p>
                                         <p className="text-sm text-gray-500">Satıcı: {item.product.store_name || "Zodiac Store"}</p>
                                     </div>
                                     <div className="flex items-center border rounded-md">
@@ -146,11 +122,10 @@ const CartPage = () => {
                                         </button>
                                     </div>
                                 </div>
-                                )
-                            })}
+                            ))}
                         </div>
                     </div>
-                    
+
                     <div className="lg:w-96 w-full lg:flex-shrink-0">
                         <div className="bg-white p-6 rounded-lg shadow-sm border sticky top-24 space-y-4">
                             <h2 className="text-xl font-bold">Sipariş Özeti</h2>
@@ -214,9 +189,12 @@ const CartPage = () => {
                                 )}
                             </div>
 
-                            <button className="w-full bg-orange-500 text-white font-bold py-3 rounded-lg hover:bg-orange-600 transition-colors">
+                            <Link 
+                                to="/order"
+                                className="block text-center w-full bg-orange-500 text-white font-bold py-3 rounded-lg hover:bg-orange-600 transition-colors"
+                            >
                                 Sepeti Onayla
-                            </button>
+                            </Link>
                         </div>
                     </div>
                 </div>
