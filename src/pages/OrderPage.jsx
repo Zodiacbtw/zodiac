@@ -24,6 +24,7 @@ const OrderPage = () => {
     const [selectedCard, setSelectedCard] = useState(null);
     const [showCardForm, setShowCardForm] = useState(false);
     const [editingCard, setEditingCard] = useState(null);
+    const [cvv, setCvv] = useState('');
 
     useEffect(() => {
         dispatch(fetchAddresses());
@@ -64,7 +65,8 @@ const OrderPage = () => {
     const handleCreateOrder = () => {
         if (!selectedAddress) return alert("Lütfen bir teslimat adresi seçin.");
         if (!selectedCard) return alert("Lütfen bir ödeme kartı seçin.");
-        
+        if (cvv.length !== 3 || !/^\d+$/.test(cvv)) return alert("Lütfen geçerli bir CVV girin (3 haneli rakam).");
+
         const card = cardList.find(c => c.id === selectedCard);
         const checkedItems = cartItems.filter(item => item.checked);
         if (!card || checkedItems.length === 0) {
@@ -79,13 +81,9 @@ const OrderPage = () => {
             card_name: card.name_on_card,
             card_expire_month: card.expire_month,
             card_expire_year: card.expire_year,
-            card_ccv: 123,
+            card_ccv: parseInt(cvv, 10),
             price: orderSummary.grandTotal,
-            products: checkedItems.map(item => ({
-                product_id: item.product.id,
-                count: item.count,
-                detail: item.product.name.substring(0, 50),
-            })),
+            products: checkedItems.map(item => item.product.id),
         };
         
         dispatch(createOrder(orderData, history));
@@ -179,8 +177,12 @@ const OrderPage = () => {
                                     <PlusCircle /> Yeni Kart Ekle
                                 </button>
                                 {showCardForm && <CardForm existingCard={editingCard} onFormClose={() => setShowCardForm(false)} />}
-                                
-                                
+                                {selectedCard && (
+                                    <div className="mt-6 p-4 bg-gray-100 rounded-md">
+                                        <label htmlFor="cvv" className="block text-sm font-medium text-gray-700">Güvenlik Kodu (CVV)</label>
+                                        <input type="password" id="cvv" value={cvv} onChange={(e) => setCvv(e.target.value)} maxLength="3" placeholder="•••" className="w-24 mt-1 border-gray-300 rounded-md shadow-sm"/>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
@@ -189,8 +191,8 @@ const OrderPage = () => {
                     <div className="bg-white p-6 rounded-lg shadow-sm border sticky top-24 space-y-4">
                         <h2 className="text-xl font-bold">Sipariş Özeti</h2>
                         <div className="space-y-2 text-gray-700">
-                            <div className="flex justify-between"><span>Ürünlerin Toplamı</span><span>{orderSummary.subtotal.toFixed(2)} TL</span></div>
-                            <div className="flex justify-between"><span>Kargo Toplamı</span><span>{orderSummary.shippingCost.toFixed(2)} TL</span></div>
+                            <div className="flex justify-between"><span>Ürünlerin Toplamı</span><span className="font-semibold">{orderSummary.subtotal.toFixed(2)} TL</span></div>
+                            <div className="flex justify-between"><span>Kargo Toplamı</span><span className="font-semibold">{orderSummary.shippingCost.toFixed(2)} TL</span></div>
                             {orderSummary.shippingDiscount > 0 && (<div className="flex justify-between"><span>Kargo İndirimi</span><span className="text-green-600 font-semibold">-{orderSummary.shippingDiscount.toFixed(2)} TL</span></div>)}
                         </div>
                         <hr />
