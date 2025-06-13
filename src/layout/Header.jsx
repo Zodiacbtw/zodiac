@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, NavLink, useHistory } from 'react-router-dom';
-import { User, ShoppingCart, Menu, X, ChevronDown, UserPlus, LogOut, UserCircle } from 'lucide-react';
+import { User, ShoppingCart, Menu, X, ChevronDown, UserPlus, LogOut, UserCircle, Box } from 'lucide-react';
 import { useSelector, useDispatch } from 'react-redux';
 import { logoutUser } from '../store/actions/clientActions';
 
@@ -25,6 +25,7 @@ const Header = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isShopDropdownOpen, setIsShopDropdownOpen] = useState(false); 
   const [isCartDropdownOpen, setIsCartDropdownOpen] = useState(false);
+  const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   
   const dispatch = useDispatch();
   const history = useHistory();
@@ -38,6 +39,7 @@ const Header = () => {
   const handleLogout = () => {
     dispatch(logoutUser(history));
     setIsMobileMenuOpen(false);
+    setIsProfileDropdownOpen(false);
   };
 
   const categorizedByGender = categories.reduce((acc, category) => {
@@ -103,42 +105,26 @@ const Header = () => {
           
           <div className="hidden md:flex items-center space-x-4">
             {isAuthenticated && user ? (
-              <>
-                <Link to="/profile" className="flex items-center gap-2 text-gray-600 hover:text-blue-600" title="My Profile">
-                  {user.photo ? (<img src={user.photo} alt="Profil" className="w-8 h-8 rounded-full object-cover" />) : (<UserCircle size={24} />)}
+              <div className="relative" onMouseEnter={() => setIsProfileDropdownOpen(true)} onMouseLeave={() => setIsProfileDropdownOpen(false)}>
+                <Link to="/profile" className="flex items-center gap-2 text-gray-600 hover:text-blue-600 py-4" title="My Profile">
+                  {user.photo ? (<img src={user.photo} alt="Profile" className="w-8 h-8 rounded-full object-cover" />) : (<UserCircle size={24} />)}
                   <span className="text-sm font-medium">{user.name}</span>
                 </Link>
-                <button onClick={handleLogout} className="text-gray-600 hover:text-red-500" title="Logout"><LogOut size={22} /></button>
-              </>
+                {isProfileDropdownOpen && (
+                  <div className="absolute right-0 mt-0 w-48 bg-white rounded-md shadow-lg py-1 ring-1 ring-black ring-opacity-5">
+                    <Link to="/profile" onClick={() => setIsProfileDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"><UserCircle size={18} /> My Profile</Link>
+                    <Link to="/previous-orders" onClick={() => setIsProfileDropdownOpen(false)} className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"><Box size={18} /> My Orders</Link>
+                    <button onClick={handleLogout} className="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-red-700 hover:bg-red-50"><LogOut size={18} /> Logout</button>
+                  </div>
+                )}
+              </div>
             ) : (
-              <>
-                <Link to="/signup" className="text-gray-600 hover:text-blue-600" title="Sign Up"><UserPlus size={22} /></Link>
-                <Link to="/login" className="text-gray-600 hover:text-blue-600" title="Log In"><User size={22} /></Link>
-              </>
+              <><Link to="/signup" className="text-gray-600 hover:text-blue-600" title="Sign Up"><UserPlus size={22} /></Link><Link to="/login" className="text-gray-600 hover:text-blue-600" title="Login"><User size={22} /></Link></>
             )}
             
             <div className="relative py-4 -my-4" onMouseEnter={() => setIsCartDropdownOpen(true)} onMouseLeave={() => setIsCartDropdownOpen(false)}>
-              <Link to="/cart" className="block text-gray-600 hover:text-blue-600 relative" title="Shopping Cart">
-                <ShoppingCart size={22} />
-                {totalItemCount > 0 && (<span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">{totalItemCount}</span>)}
-              </Link>
-              {isCartDropdownOpen && (
-                  <div className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-2xl p-4 border z-50">
-                    <h3 className="font-bold text-lg mb-3 border-b pb-2">My Cart ({totalItemCount} Items)</h3>
-                    <div className="max-h-80 overflow-y-auto pr-2">
-                      {cartItems.length > 0 ? (
-                        cartItems.map(item => (
-                          <div key={item.product.id} className="flex items-start py-3 border-b last:border-b-0">
-                            <img src={item.product.images[0].url} alt={item.product.name} className="w-16 h-16 object-cover rounded-md mr-4"/>
-                            <div className="flex-1"><p className="font-semibold text-sm leading-tight">{item.product.name}</p><p className="text-xs text-gray-500 mt-1">Quantity: {item.count}</p></div>
-                            <div className="text-right"><p className="font-bold text-orange-600">{item.product.price.toFixed(2)} TL</p></div>
-                          </div>
-                        ))
-                      ) : (<p className="text-center text-gray-500 py-10">Your cart is empty.</p>)}
-                    </div>
-                    {cartItems.length > 0 && (<div className="mt-4 flex gap-3"><Link to="/cart" className="flex-1 text-center bg-gray-100 py-2 rounded-md font-medium">Go to Cart</Link><Link to="/order" className="flex-1 text-center bg-orange-500 text-white py-2 rounded-md font-semibold">Checkout</Link></div>)}
-                  </div>
-              )}
+              <Link to="/cart" className="block text-gray-600 hover:text-blue-600 relative" title="Shopping Cart"><ShoppingCart size={22} />{totalItemCount > 0 && (<span className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">{totalItemCount}</span>)}</Link>
+              {isCartDropdownOpen && (<div className="absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-2xl p-4 border z-50"><h3 className="font-bold text-lg mb-3 border-b pb-2">My Cart ({totalItemCount} Items)</h3><div className="max-h-80 overflow-y-auto pr-2">{cartItems.length > 0 ? (cartItems.map(item => (<div key={item.product.id} className="flex items-start py-3 border-b last:border-b-0"><img src={item.product.images[0].url} alt={item.product.name} className="w-16 h-16 object-cover rounded-md mr-4"/><div className="flex-1"><p className="font-semibold text-sm leading-tight">{item.product.name}</p><p className="text-xs text-gray-500 mt-1">Quantity: {item.count}</p></div><div className="text-right"><p className="font-bold text-orange-600">{item.product.price.toFixed(2)} TL</p></div></div>))) : (<p className="text-center text-gray-500 py-10">Your cart is empty.</p>)}</div>{cartItems.length > 0 && (<div className="mt-4 flex gap-3"><Link to="/cart" className="flex-1 text-center bg-gray-100 py-2 rounded-md font-medium">Go to Cart</Link><Link to="/order" className="flex-1 text-center bg-orange-500 text-white py-2 rounded-md font-semibold">Checkout</Link></div>)}</div>)}
             </div>
           </div>
 
@@ -168,7 +154,7 @@ const Header = () => {
                     {user.photo ? (<img src={user.photo} alt="Profile" className="w-6 h-6 rounded-full object-cover" />) : (<UserCircle size={22} />)}
                     {user.name}
                   </Link>
-                  <button onClick={handleLogout} className="flex items-center gap-2"><LogOut size={22} /> Çıkış Yap</button>
+                  <button onClick={handleLogout} className="flex items-center gap-2"><LogOut size={22} /> Logout</button>
                 </>
               ) : (
                 <>

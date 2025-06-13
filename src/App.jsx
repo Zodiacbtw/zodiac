@@ -22,6 +22,7 @@ import OrderSuccessPage from './pages/OrderSuccessPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import ProfilePage from './pages/ProfilePage';
 import ScrollToTop from './components/ScrollToTop';
+import PreviousOrdersPage from './pages/PreviousOrdersPage';
 
 
 function AppContent() {
@@ -58,6 +59,7 @@ function AppContent() {
       <PageContent>
         <Switch>
           <Route exact path="/"> <HomePage /> </Route>
+          
           <Route 
             exact 
             path="/shop" 
@@ -68,13 +70,21 @@ function AppContent() {
             path="/shop/:gender/:categoryName/:categoryId" 
             render={({ location }) => <ShopPage key={location.pathname} />}
           />
+          
           <Route path="/shop/:gender/:categoryName/:categoryId/:productNameSlug/:productId">
             <ProductDetailPage />
           </Route>
+          
           <Route exact path="/cart"> <CartPage /> </Route>
+          
           <ProtectedRoute exact path="/order" component={OrderPage} />
+          
           <Route exact path="/order-success" component={OrderSuccessPage} />
+          
           <ProtectedRoute exact path="/profile" component={ProfilePage} />
+
+          <ProtectedRoute exact path="/previous-orders" component={PreviousOrdersPage} />
+          
           <Route exact path="/contact"> <ContactPage /> </Route>
           <Route exact path="/team"> <TeamPage /> </Route>
           <Route exact path="/about"> <AboutPage /> </Route>

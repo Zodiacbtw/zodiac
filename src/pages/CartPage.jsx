@@ -9,7 +9,7 @@ import { Plus, Minus, Trash2, XCircle } from 'lucide-react';
 
 const validCoupons = {
     "ZODIAC10": { code: "ZODIAC10", type: "percentage", value: 10 },
-    "ZODIAC50": { code: "ZODIAC50", type: "fixed", value: 50 },
+    "ZODIAC50": { code: "ZODIAC50", type: "fixed", value: 60 },
 };
 
 const CartPage = () => {
@@ -65,6 +65,7 @@ const CartPage = () => {
         setCouponMessage({ text: "", type: "" });
     };
 
+    // Hesaplama mantığı değişmiyor.
     const orderSummary = useMemo(() => {
         const checkedItems = cartItems.filter(item => item.checked);
         const productsTotal = checkedItems.reduce((total, item) => total + (item.product.price * item.count), 0);
@@ -100,12 +101,7 @@ const CartPage = () => {
                         <div className="space-y-4">
                             {cartItems.map(item => (
                                 <div key={item.product.id} className="bg-white p-4 rounded-lg shadow-sm border flex items-center gap-4">
-                                    <input
-                                        type="checkbox"
-                                        checked={item.checked}
-                                        onChange={() => handleToggleChecked(item.product.id)}
-                                        className="h-5 w-5 rounded border-gray-300 text-orange-500 focus:ring-orange-500 cursor-pointer"
-                                    />
+                                    <input type="checkbox" checked={item.checked} onChange={() => handleToggleChecked(item.product.id)} className="h-5 w-5 rounded border-gray-300 text-orange-500 focus:ring-orange-500 cursor-pointer"/>
                                     <img src={item.product.images[0]?.url || 'https://via.placeholder.com/150'} alt={item.product.name} className="w-24 h-24 object-cover rounded-md" />
                                     <div className="flex-grow">
                                         <p className="font-semibold text-gray-800">{item.product.name}</p>
@@ -118,9 +114,7 @@ const CartPage = () => {
                                     </div>
                                     <div className="flex flex-col items-end w-40">
                                         <p className="text-lg font-bold text-orange-600">{(item.product.price * item.count).toFixed(2)} TL</p>
-                                        <button onClick={() => handleRemoveItem(item.product.id)} className="text-gray-400 hover:text-red-500 mt-2">
-                                            <Trash2 size={20} />
-                                        </button>
+                                        <button onClick={() => handleRemoveItem(item.product.id)} className="text-gray-400 hover:text-red-500 mt-2"><Trash2 size={20} /></button>
                                     </div>
                                 </div>
                             ))}
@@ -131,26 +125,32 @@ const CartPage = () => {
                         <div className="bg-white p-6 rounded-lg shadow-sm border sticky top-24 space-y-4">
                             <h2 className="text-xl font-bold">Order Summary</h2>
                             <div className="space-y-2 text-gray-700">
+                                
                                 <div className="flex justify-between items-center">
-                                    <span>Subtotal</span>
+                                    <span>{appliedDiscount ? "Products Total" : "Subtotal"}</span>
                                     <span className="font-semibold">{orderSummary.productsTotal.toFixed(2)} TL</span>
                                 </div>
-                                {orderSummary.couponDiscount > 0 && (
-                                     <div className="flex justify-between items-center">
-                                        <span>Discount Coupon ({appliedDiscount.code})</span>
-                                        <span className="text-green-600 font-semibold">-{orderSummary.couponDiscount.toFixed(2)} TL</span>
-                                    </div>
+
+                                {appliedDiscount && (
+                                    <>
+                                        <div className="flex justify-between items-center">
+                                            <span>Discount Coupon ({appliedDiscount.code})</span>
+                                            <span className="text-green-600 font-semibold">-{orderSummary.couponDiscount.toFixed(2)} TL</span>
+                                        </div>
+                                        <div className="flex justify-between items-center font-semibold border-t pt-2 mt-2">
+                                            <span>Subtotal (after discount)</span>
+                                            <span>{orderSummary.subtotal.toFixed(2)} TL</span>
+                                        </div>
+                                    </>
                                 )}
-                                <div className="flex justify-between items-center font-semibold border-t pt-2 mt-2">
-                                    <span>Subtotal (after discount)</span>
-                                    <span className="font-semibold">{orderSummary.subtotal.toFixed(2)} TL</span>
-                                </div>
+                                
                                 <div className="flex justify-between items-center">
                                     <span>Shipping</span>
                                     <span className={orderSummary.finalShippingCost === 0 ? "text-green-600 font-semibold" : "font-semibold"}>
                                         {orderSummary.finalShippingCost > 0 ? `${orderSummary.finalShippingCost.toFixed(2)} TL` : "Free"}
                                     </span>
                                 </div>
+
                             </div>
                             <hr />
                             <div className="flex justify-between text-xl font-bold">
@@ -167,35 +167,18 @@ const CartPage = () => {
                                 ) : isCouponFormVisible ? (
                                     <div>
                                         <div className="flex gap-2">
-                                            <input 
-                                                type="text"
-                                                value={couponInput}
-                                                onChange={(e) => setCouponInput(e.target.value)}
-                                                placeholder="Enter discount code"
-                                                className="flex-grow border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 text-sm p-2"
-                                            />
+                                            <input type="text" value={couponInput} onChange={(e) => setCouponInput(e.target.value)} placeholder="Enter discount code" className="flex-grow border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 text-sm p-2" />
                                             <button onClick={handleApplyCoupon} className="bg-gray-700 text-white px-4 rounded-md hover:bg-black text-sm font-semibold">Apply</button>
                                         </div>
                                         <button onClick={() => setIsCouponFormVisible(false)} className="text-xs text-gray-500 mt-1 hover:underline">Cancel</button>
                                     </div>
                                 ) : (
-                                    <button onClick={() => setIsCouponFormVisible(true)} className="w-full mt-4 border-dashed border-2 border-gray-300 text-gray-600 font-semibold py-3 rounded-lg hover:bg-gray-100 transition-colors">
-                                        + ENTER DISCOUNT CODE
-                                    </button>
+                                    <button onClick={() => setIsCouponFormVisible(true)} className="w-full mt-4 border-dashed border-2 border-gray-300 text-gray-600 font-semibold py-3 rounded-lg hover:bg-gray-100 transition-colors">+ ENTER DISCOUNT CODE</button>
                                 )}
-                                {couponMessage.text && (
-                                    <p className={`text-xs mt-2 ${couponMessage.type === 'error' ? 'text-red-500' : 'text-green-600'}`}>
-                                        {couponMessage.text}
-                                    </p>
-                                )}
+                                {couponMessage.text && (<p className={`text-xs mt-2 ${couponMessage.type === 'error' ? 'text-red-500' : 'text-green-600'}`}>{couponMessage.text}</p>)}
                             </div>
 
-                            <Link 
-                                to="/order"
-                                className="block text-center w-full bg-orange-500 text-white font-bold py-3 rounded-lg hover:bg-orange-600 transition-colors"
-                            >
-                                Confirm Cart
-                            </Link>
+                            <Link to="/order" className="block text-center w-full bg-orange-500 text-white font-bold py-3 rounded-lg hover:bg-orange-600 transition-colors">Confirm Cart</Link>
                         </div>
                     </div>
                 </div>
@@ -203,9 +186,7 @@ const CartPage = () => {
                 <div className="text-center py-20 bg-white rounded-lg shadow-sm border">
                     <h2 className="text-2xl font-semibold text-gray-700">Your cart is empty.</h2>
                     <p className="text-gray-500 mt-2">Start shopping now to fill your cart!</p>
-                    <Link to="/shop" className="inline-block mt-6 bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">
-                        Start Shopping
-                    </Link>
+                    <Link to="/shop" className="inline-block mt-6 bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">Start Shopping</Link>
                 </div>
             )}
         </div>
