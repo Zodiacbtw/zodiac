@@ -48,11 +48,9 @@ const clientReducer = (state = initialState, action) => {
       return { ...state, isLoggingIn: true, loginError: null, isAuthenticated: false };
       
     case LOGIN_SUCCESS:
-      // Sadece "Remember Me" seçiliyse token'ı localStorage'a yaz.
       if (action.payload.rememberMe && action.payload.token) {
         localStorage.setItem('authToken', action.payload.token);
       }
-      // Hatalı `else` bloğu kaldırıldı. Her durumda o anki oturum için state güncellenir.
       return {
         ...state,
         isLoggingIn: false,

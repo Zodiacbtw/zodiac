@@ -22,7 +22,7 @@ const ProfilePage = () => {
     };
 
     const handleRemoveClick = () => {
-        if (window.confirm("Profil fotoğrafınızı kaldırmak istediğinizden emin misiniz?")) {
+        if (window.confirm("Are you sure you want to remove your profile picture?")) {
             dispatch(removeUserPhoto());
         }
     };
@@ -33,13 +33,13 @@ const ProfilePage = () => {
 
     return (
         <div className="container mx-auto px-4 py-12 max-w-2xl">
-            <h1 className="text-4xl font-bold text-center mb-8">Profilim</h1>
+            <h1 className="text-4xl font-bold text-center mb-8">My Profile</h1>
             <div className="bg-white p-8 rounded-lg shadow-md flex flex-col items-center">
                 <div className="relative mb-6">
                     {user.photo ? (
                         <img
                             src={user.photo}
-                            alt="Profil"
+                            alt="Profile"
                             className="w-32 h-32 rounded-full object-cover border-4 border-gray-200"
                         />
                     ) : (
@@ -53,11 +53,11 @@ const ProfilePage = () => {
                         accept="image/png, image/jpeg, image/gif"
                     />
                     <div className="absolute -bottom-2 -right-2 flex gap-2">
-                        <button onClick={handleEditClick} className="bg-blue-500 text-white p-2 rounded-full shadow-md hover:bg-blue-600 transition-colors" title="Değiştir">
+                        <button onClick={handleEditClick} className="bg-blue-500 text-white p-2 rounded-full shadow-md hover:bg-blue-600 transition-colors" title="Change">
                             <Edit size={16} />
                         </button>
                         {user.photo && (
-                            <button onClick={handleRemoveClick} className="bg-red-500 text-white p-2 rounded-full shadow-md hover:bg-red-600 transition-colors" title="Kaldır">
+                            <button onClick={handleRemoveClick} className="bg-red-500 text-white p-2 rounded-full shadow-md hover:bg-red-600 transition-colors" title="Remove">
                                 <Trash2 size={16} />
                             </button>
                         )}

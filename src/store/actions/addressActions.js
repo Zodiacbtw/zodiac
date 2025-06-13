@@ -10,36 +10,36 @@ export const fetchAddresses = () => async (dispatch) => {
         dispatch({ type: FETCH_ADDRESSES_SUCCESS, payload: response.data });
     } catch (error) {
         dispatch({ type: FETCH_ADDRESSES_FAILURE, payload: error.message });
-        toast.error("Adresler yüklenemedi.");
+        toast.error("Addresses could not be loaded.");
     }
 };
 
 export const addAddress = (addressData) => async (dispatch) => {
     try {
         await axiosInstance.post('/user/address', addressData);
-        toast.success("Adres başarıyla eklendi!");
+        toast.success("Address added successfully!");
         dispatch(fetchAddresses());
     } catch (error) {
-        toast.error("Adres eklenirken bir hata oluştu.");
+        toast.error("An error occurred while adding the address.");
     }
 };
 
 export const updateAddress = (addressData) => async (dispatch) => {
     try {
         await axiosInstance.put('/user/address', addressData);
-        toast.success("Adres başarıyla güncellendi!");
+        toast.success("Address updated successfully!");
         dispatch(fetchAddresses());
     } catch (error) {
-        toast.error("Adres güncellenirken bir hata oluştu.");
+        toast.error("An error occurred while updating the address.");
     }
 };
 
 export const deleteAddress = (addressId) => async (dispatch) => {
     try {
         await axiosInstance.delete(`/user/address/${addressId}`);
-        toast.success("Adres başarıyla silindi!");
+        toast.success("Address deleted successfully!");
         dispatch(fetchAddresses());
     } catch (error) {
-        toast.error("Adres silinirken bir hata oluştu.");
+        toast.error("An error occurred while deleting the address.");
     }
 };

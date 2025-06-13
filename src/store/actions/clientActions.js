@@ -93,9 +93,9 @@ export const uploadProfilePhoto = (file) => (dispatch) => {
     try {
         const temporaryUrl = URL.createObjectURL(file);
         dispatch(setUserPhoto(temporaryUrl));
-        toast.success("Profil fotoğrafı güncellendi!");
+        toast.success("Profile picture updated successfully!");
     } catch (error) {
-        toast.error("Fotoğraf yüklenirken bir hata oluştu.");
+        toast.error("An error occurred while uploading the photo.");
         console.error("Error creating object URL:", error);
     }
 };

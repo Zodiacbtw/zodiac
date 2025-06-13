@@ -15,11 +15,11 @@ export const createOrder = (orderData, history) => async (dispatch) => {
         
         dispatch(clearCart());
         
-        toast.success("Siparişiniz başarıyla oluşturuldu!");
+        toast.success("Your order has been placed successfully!");
         history.push('/order-success');
 
     } catch (error) {
-        const errorMessage = error.response?.data?.message || "Sipariş oluşturulurken bir hata oluştu.";
+        const errorMessage = error.response?.data?.message || "An error occurred while creating the order.";
         dispatch({ type: CREATE_ORDER_FAILURE, payload: errorMessage });
         toast.error(errorMessage);
     }

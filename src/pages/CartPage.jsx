@@ -9,12 +9,13 @@ import { Plus, Minus, Trash2, XCircle } from 'lucide-react';
 
 const validCoupons = {
     "ZODIAC10": { code: "ZODIAC10", type: "percentage", value: 10 },
-    "ZODIAC50": { code: "ZODIAC50", type: "fixed", value: 60 },
+    "ZODIAC50": { code: "ZODIAC50", type: "fixed", value: 50 },
 };
 
 const CartPage = () => {
     const dispatch = useDispatch();
     const { cart: cartItems, discount: appliedDiscount } = useSelector(state => state.shoppingCart);
+    const { categories } = useSelector(state => state.category);
 
     const [isCouponFormVisible, setIsCouponFormVisible] = useState(false);
     const [couponInput, setCouponInput] = useState("");
@@ -24,7 +25,7 @@ const CartPage = () => {
         const item = cartItems.find(item => item.product.id === productId);
         if (!item) return;
         if (change > 0 && (currentCount + change) > item.product.stock) {
-            alert(`Stokta sadece ${item.product.stock} adet ürün bulunmaktadır.`);
+            alert(`Only ${item.product.stock} items left in stock.`);
             return;
         }
         const newCount = currentCount + change;
@@ -36,7 +37,7 @@ const CartPage = () => {
     };
 
     const handleRemoveItem = (productId) => {
-        if (window.confirm("Bu ürünü sepetten kaldırmak istediğinizden emin misiniz?")) {
+        if (window.confirm("Are you sure you want to remove this item from your cart?")) {
             dispatch(removeFromCart(productId));
         }
     };
@@ -50,12 +51,12 @@ const CartPage = () => {
         const coupon = validCoupons[code];
         if (coupon) {
             dispatch(applyDiscount(coupon));
-            setCouponMessage({ text: `"${code}" kuponu başarıyla uygulandı!`, type: "success" });
+            setCouponMessage({ text: `Coupon "${code}" has been applied successfully!`, type: "success" });
             setIsCouponFormVisible(false);
             setCouponInput("");
         } else {
             dispatch(removeDiscount());
-            setCouponMessage({ text: "Geçersiz veya süresi dolmuş kupon kodu.", type: "error" });
+            setCouponMessage({ text: "Invalid or expired coupon code.", type: "error" });
         }
     };
     
@@ -91,7 +92,7 @@ const CartPage = () => {
 
     return (
         <div className="container mx-auto px-4 py-8 bg-gray-50 min-h-screen">
-            <h1 className="text-3xl font-bold mb-6">Sepetim ({totalItemCount} Ürün)</h1>
+            <h1 className="text-3xl font-bold mb-6">My Cart ({totalItemCount} Items)</h1>
 
             {cartItems.length > 0 ? (
                 <div className="flex flex-col lg:flex-row gap-8 items-start">
@@ -108,7 +109,7 @@ const CartPage = () => {
                                     <img src={item.product.images[0]?.url || 'https://via.placeholder.com/150'} alt={item.product.name} className="w-24 h-24 object-cover rounded-md" />
                                     <div className="flex-grow">
                                         <p className="font-semibold text-gray-800">{item.product.name}</p>
-                                        <p className="text-sm text-gray-500">Satıcı: {item.product.store_name || "Zodiac Store"}</p>
+                                        <p className="text-sm text-gray-500">Seller: {item.product.store_name || "Zodiac Store"}</p>
                                     </div>
                                     <div className="flex items-center border rounded-md">
                                         <button onClick={() => handleQuantityChange(item.product.id, item.count, -1)} className="px-3 py-1 text-gray-600 hover:bg-gray-100 rounded-l-md"><Minus size={16} /></button>
@@ -128,40 +129,40 @@ const CartPage = () => {
 
                     <div className="lg:w-96 w-full lg:flex-shrink-0">
                         <div className="bg-white p-6 rounded-lg shadow-sm border sticky top-24 space-y-4">
-                            <h2 className="text-xl font-bold">Sipariş Özeti</h2>
+                            <h2 className="text-xl font-bold">Order Summary</h2>
                             <div className="space-y-2 text-gray-700">
                                 <div className="flex justify-between items-center">
-                                    <span>Ürünlerin Toplamı</span>
+                                    <span>Subtotal</span>
                                     <span className="font-semibold">{orderSummary.productsTotal.toFixed(2)} TL</span>
                                 </div>
                                 {orderSummary.couponDiscount > 0 && (
                                      <div className="flex justify-between items-center">
-                                        <span>İndirim Kuponu ({appliedDiscount.code})</span>
+                                        <span>Discount Coupon ({appliedDiscount.code})</span>
                                         <span className="text-green-600 font-semibold">-{orderSummary.couponDiscount.toFixed(2)} TL</span>
                                     </div>
                                 )}
                                 <div className="flex justify-between items-center font-semibold border-t pt-2 mt-2">
-                                    <span>Ara Toplam</span>
-                                    <span>{orderSummary.subtotal.toFixed(2)} TL</span>
+                                    <span>Subtotal (after discount)</span>
+                                    <span className="font-semibold">{orderSummary.subtotal.toFixed(2)} TL</span>
                                 </div>
                                 <div className="flex justify-between items-center">
-                                    <span>Kargo Toplamı</span>
+                                    <span>Shipping</span>
                                     <span className={orderSummary.finalShippingCost === 0 ? "text-green-600 font-semibold" : "font-semibold"}>
-                                        {orderSummary.finalShippingCost > 0 ? `${orderSummary.finalShippingCost.toFixed(2)} TL` : "Bedava"}
+                                        {orderSummary.finalShippingCost > 0 ? `${orderSummary.finalShippingCost.toFixed(2)} TL` : "Free"}
                                     </span>
                                 </div>
                             </div>
                             <hr />
                             <div className="flex justify-between text-xl font-bold">
-                                <span>Toplam</span>
+                                <span>Total</span>
                                 <span>{orderSummary.grandTotal.toFixed(2)} TL</span>
                             </div>
 
                             <div className="pt-2">
                                 {appliedDiscount ? (
                                     <div className="bg-green-100 border-l-4 border-green-500 text-green-800 p-3 rounded-md flex justify-between items-center text-sm">
-                                        <p>"{appliedDiscount.code}" kuponu uygulandı.</p>
-                                        <button onClick={handleRemoveCoupon} className="text-green-800 hover:text-red-600" title="Kuponu Kaldır"><XCircle size={18} /></button>
+                                        <p>"{appliedDiscount.code}" coupon applied.</p>
+                                        <button onClick={handleRemoveCoupon} className="text-green-800 hover:text-red-600" title="Remove Coupon"><XCircle size={18} /></button>
                                     </div>
                                 ) : isCouponFormVisible ? (
                                     <div>
@@ -170,16 +171,16 @@ const CartPage = () => {
                                                 type="text"
                                                 value={couponInput}
                                                 onChange={(e) => setCouponInput(e.target.value)}
-                                                placeholder="İndirim kodunu girin"
+                                                placeholder="Enter discount code"
                                                 className="flex-grow border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500 text-sm p-2"
                                             />
-                                            <button onClick={handleApplyCoupon} className="bg-gray-700 text-white px-4 rounded-md hover:bg-black text-sm font-semibold">Uygula</button>
+                                            <button onClick={handleApplyCoupon} className="bg-gray-700 text-white px-4 rounded-md hover:bg-black text-sm font-semibold">Apply</button>
                                         </div>
-                                        <button onClick={() => setIsCouponFormVisible(false)} className="text-xs text-gray-500 mt-1 hover:underline">Vazgeç</button>
+                                        <button onClick={() => setIsCouponFormVisible(false)} className="text-xs text-gray-500 mt-1 hover:underline">Cancel</button>
                                     </div>
                                 ) : (
                                     <button onClick={() => setIsCouponFormVisible(true)} className="w-full mt-4 border-dashed border-2 border-gray-300 text-gray-600 font-semibold py-3 rounded-lg hover:bg-gray-100 transition-colors">
-                                        + İNDİRİM KODU GİR
+                                        + ENTER DISCOUNT CODE
                                     </button>
                                 )}
                                 {couponMessage.text && (
@@ -193,17 +194,17 @@ const CartPage = () => {
                                 to="/order"
                                 className="block text-center w-full bg-orange-500 text-white font-bold py-3 rounded-lg hover:bg-orange-600 transition-colors"
                             >
-                                Sepeti Onayla
+                                Confirm Cart
                             </Link>
                         </div>
                     </div>
                 </div>
             ) : (
                 <div className="text-center py-20 bg-white rounded-lg shadow-sm border">
-                    <h2 className="text-2xl font-semibold text-gray-700">Sepetinizde ürün bulunmuyor.</h2>
-                    <p className="text-gray-500 mt-2">Hemen alışverişe başlayarak sepetinizi doldurun!</p>
+                    <h2 className="text-2xl font-semibold text-gray-700">Your cart is empty.</h2>
+                    <p className="text-gray-500 mt-2">Start shopping now to fill your cart!</p>
                     <Link to="/shop" className="inline-block mt-6 bg-blue-600 text-white font-bold py-3 px-6 rounded-lg hover:bg-blue-700 transition-colors">
-                        Alışverişe Başla
+                        Start Shopping
                     </Link>
                 </div>
             )}

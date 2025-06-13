@@ -58,19 +58,26 @@ const OrderPage = () => {
         if (selectedAddress) {
             setCurrentStep(2);
         } else {
-            alert("Lütfen bir teslimat adresi seçin.");
+            alert("Please select a delivery address.");
         }
     };
 
     const handleCreateOrder = () => {
-        if (!selectedAddress) return alert("Lütfen bir teslimat adresi seçin.");
-        if (!selectedCard) return alert("Lütfen bir ödeme kartı seçin.");
-        if (cvv.length !== 3 || !/^\d+$/.test(cvv)) return alert("Lütfen geçerli bir CVV girin (3 haneli rakam).");
+        if (!selectedAddress) return alert("Please select a delivery address.");
+        if (!selectedCard) return alert("Please select a payment card.");
+        if (cvv.length !== 3 || !/^\d+$/.test(cvv)) {
+            alert("Please enter a valid CVV (3 digit number).");
+            if (!showCardForm) {
+                const cardToEdit = cardList.find(c => c.id === selectedCard);
+                if (cardToEdit) handleEditCard(cardToEdit);
+            }
+            return;
+        }
 
         const card = cardList.find(c => c.id === selectedCard);
         const checkedItems = cartItems.filter(item => item.checked);
         if (!card || checkedItems.length === 0) {
-            alert("Sipariş için gerekli bilgiler eksik.");
+            alert("Required information for the order is missing.");
             return;
         }
 
@@ -91,11 +98,11 @@ const OrderPage = () => {
 
     const handleAddNewAddress = () => { setEditingAddress(null); setShowAddressForm(true); };
     const handleEditAddress = (address) => { setEditingAddress(address); setShowAddressForm(true); };
-    const handleDeleteAddress = (addressId) => { if (window.confirm("Bu adresi silmek istediğinizden emin misiniz?")) dispatch(deleteAddress(addressId)); };
+    const handleDeleteAddress = (addressId) => { if (window.confirm("Are you sure you want to delete this address?")) dispatch(deleteAddress(addressId)); };
     
     const handleAddNewCard = () => { setEditingCard(null); setShowCardForm(true); };
     const handleEditCard = (card) => { setEditingCard(card); setShowCardForm(true); };
-    const handleDeleteCard = (cardId) => { if (window.confirm("Bu kartı silmek istediğinizden emin misiniz?")) dispatch(deleteCard(cardId)); };
+    const handleDeleteCard = (cardId) => { if (window.confirm("Are you sure you want to delete this card?")) dispatch(deleteCard(cardId)); };
 
     const orderSummary = useMemo(() => {
         const checkedItems = cartItems.filter(item => item.checked);
@@ -111,10 +118,10 @@ const OrderPage = () => {
         <div className="container mx-auto px-4 py-8">
             <div className="flex mb-8 border-b">
                 <div className={`flex-1 p-4 text-center border-b-4 ${currentStep === 1 ? 'border-orange-500 text-orange-500' : 'border-transparent text-gray-500'}`}>
-                    <h2 className="text-xl font-bold">1. Adres Bilgileri</h2>
+                    <h2 className="text-xl font-bold">1. Address Information</h2>
                 </div>
                 <div className={`flex-1 p-4 text-center border-b-4 ${currentStep === 2 ? 'border-orange-500 text-orange-500' : 'border-transparent text-gray-500'}`}>
-                    <h2 className="text-xl font-bold">2. Ödeme Seçenekleri</h2>
+                    <h2 className="text-xl font-bold">2. Payment Options</h2>
                 </div>
             </div>
 
@@ -122,7 +129,7 @@ const OrderPage = () => {
                 <div className="flex-grow">
                     {currentStep === 1 && (
                         <div>
-                            <h2 className="text-2xl font-semibold mb-4">Teslimat Adresi</h2>
+                            <h2 className="text-2xl font-semibold mb-4">Delivery Address</h2>
                             <div className="space-y-4">
                                 {addressList.map(address => (
                                     <div key={address.id} onClick={() => setSelectedAddress(address.id)} className={`p-4 border-2 rounded-lg cursor-pointer ${selectedAddress === address.id ? 'border-orange-500 bg-orange-50' : 'border-gray-200 bg-white'}`}>
@@ -145,7 +152,7 @@ const OrderPage = () => {
                                     </div>
                                 ))}
                                 <button onClick={handleAddNewAddress} className="w-full flex items-center justify-center gap-2 p-6 border-2 border-dashed rounded-lg">
-                                    <PlusCircle /> Yeni Adres Ekle
+                                    <PlusCircle /> Add New Address
                                 </button>
                                 {showAddressForm && <AddressForm existingAddress={editingAddress} onFormClose={() => setShowAddressForm(false)} />}
                             </div>
@@ -153,7 +160,7 @@ const OrderPage = () => {
                     )}
                     {currentStep === 2 && (
                         <div>
-                            <h2 className="text-2xl font-semibold mb-4">Kart ile Öde</h2>
+                            <h2 className="text-2xl font-semibold mb-4">Pay with Card</h2>
                             <div className="space-y-4">
                                 {cardList.map(card => (
                                     <div key={card.id} onClick={() => setSelectedCard(card.id)} className={`p-4 border-2 rounded-lg cursor-pointer ${selectedCard === card.id ? 'border-orange-500 bg-orange-50' : 'border-gray-200 bg-white'}`}>
@@ -174,30 +181,24 @@ const OrderPage = () => {
                                     </div>
                                 ))}
                                 <button onClick={handleAddNewCard} className="w-full flex items-center justify-center gap-2 p-6 border-2 border-dashed rounded-lg">
-                                    <PlusCircle /> Yeni Kart Ekle
+                                    <PlusCircle /> Add New Card
                                 </button>
-                                {showCardForm && <CardForm existingCard={editingCard} onFormClose={() => setShowCardForm(false)} />}
-                                {selectedCard && (
-                                    <div className="mt-6 p-4 bg-gray-100 rounded-md">
-                                        <label htmlFor="cvv" className="block text-sm font-medium text-gray-700">Güvenlik Kodu (CVV)</label>
-                                        <input type="password" id="cvv" value={cvv} onChange={(e) => setCvv(e.target.value)} maxLength="3" placeholder="•••" className="w-24 mt-1 border-gray-300 rounded-md shadow-sm"/>
-                                    </div>
-                                )}
+                                {showCardForm && <CardForm existingCard={editingCard} onFormClose={() => setShowCardForm(false)} cvv={cvv} onCvvChange={setCvv} />}
                             </div>
                         </div>
                     )}
                 </div>
                 <div className="lg:w-96 w-full lg:flex-shrink-0">
                     <div className="bg-white p-6 rounded-lg shadow-sm border sticky top-24 space-y-4">
-                        <h2 className="text-xl font-bold">Sipariş Özeti</h2>
+                        <h2 className="text-xl font-bold">Order Summary</h2>
                         <div className="space-y-2 text-gray-700">
-                            <div className="flex justify-between"><span>Ürünlerin Toplamı</span><span className="font-semibold">{orderSummary.subtotal.toFixed(2)} TL</span></div>
-                            <div className="flex justify-between"><span>Kargo Toplamı</span><span className="font-semibold">{orderSummary.shippingCost.toFixed(2)} TL</span></div>
-                            {orderSummary.shippingDiscount > 0 && (<div className="flex justify-between"><span>Kargo İndirimi</span><span className="text-green-600 font-semibold">-{orderSummary.shippingDiscount.toFixed(2)} TL</span></div>)}
+                            <div className="flex justify-between"><span>Subtotal</span><span className="font-semibold">{orderSummary.subtotal.toFixed(2)} TL</span></div>
+                            <div className="flex justify-between"><span>Shipping</span><span className="font-semibold">{orderSummary.shippingCost.toFixed(2)} TL</span></div>
+                            {orderSummary.shippingDiscount > 0 && (<div className="flex justify-between"><span>Shipping Discount</span><span className="text-green-600 font-semibold">-{orderSummary.shippingDiscount.toFixed(2)} TL</span></div>)}
                         </div>
                         <hr />
-                        <div className="flex justify-between text-lg font-bold"><span>Toplam</span><span>{orderSummary.grandTotal.toFixed(2)} TL</span></div>
-                        {currentStep === 1 && <button onClick={handleGoToPayment} className="w-full bg-orange-500 text-white font-bold py-3 rounded-lg hover:bg-orange-600">Kaydet ve Devam Et</button>}
+                        <div className="flex justify-between text-lg font-bold"><span>Total</span><span>{orderSummary.grandTotal.toFixed(2)} TL</span></div>
+                        {currentStep === 1 && <button onClick={handleGoToPayment} className="w-full bg-orange-500 text-white font-bold py-3 rounded-lg hover:bg-orange-600">Save and Continue</button>}
                         {currentStep === 2 && <button onClick={handleCreateOrder} disabled={orderLoading} className="w-full bg-orange-500 text-white font-bold py-3 rounded-lg hover:bg-orange-600 disabled:opacity-50">{orderLoading ? 'İşleniyor...' : 'Ödeme Yap'}</button>}
                     </div>
                 </div>

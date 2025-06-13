@@ -10,36 +10,36 @@ export const fetchCards = () => async (dispatch) => {
         dispatch({ type: FETCH_CARDS_SUCCESS, payload: response.data });
     } catch (error) {
         dispatch({ type: FETCH_CARDS_FAILURE, payload: error.message });
-        toast.error("Kayıtlı kartlar yüklenemedi.");
+        toast.error("Saved cards could not be loaded.");
     }
 };
 
 export const addCard = (cardData) => async (dispatch) => {
     try {
         await axiosInstance.post('/user/card', cardData);
-        toast.success("Kart başarıyla eklendi!");
+        toast.success("Card added successfully!");
         dispatch(fetchCards());
     } catch (error) {
-        toast.error("Kart eklenirken bir hata oluştu.");
+        toast.error("An error occurred while adding the card.");
     }
 };
 
 export const updateCard = (cardData) => async (dispatch) => {
     try {
         await axiosInstance.put('/user/card', cardData);
-        toast.success("Kart başarıyla güncellendi!");
+        toast.success("Card updated successfully!");
         dispatch(fetchCards());
     } catch (error) {
-        toast.error("Kart güncellenirken bir hata oluştu.");
+        toast.error("An error occurred while updating the card.");
     }
 };
 
 export const deleteCard = (cardId) => async (dispatch) => {
     try {
         await axiosInstance.delete(`/user/card/${cardId}`);
-        toast.success("Kart başarıyla silindi!");
+        toast.success("Card deleted successfully!");
         dispatch(fetchCards());
     } catch (error) {
-        toast.error("Kart silinirken bir hata oluştu.");
+        toast.error("An error occurred while deleting the card.");
     }
 };

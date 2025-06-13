@@ -43,7 +43,7 @@ const SignUpPage = () => {
     }),
     storePhone: yup.string().when('role_id', {
       is: (roleId) => roleId === storeRoleId && !!storeRoleId,
-      then: (s) => s.required('Store phone is required').matches(phoneRegExp, 'Invalid Turkish phone number (e.g., 05xxxxxxxxx)'),
+      then: (s) => s.required('Store phone is required').matches(phoneRegExp, 'Invalid phone number (e.g., 05xxxxxxxxx)'),
       otherwise: (s) => s.optional(),
     }),
     storeTaxId: yup.string().when('role_id', {

@@ -25,12 +25,12 @@ const ProductDetailPage = () => {
       const currentQuantityInCart = itemInCart ? itemInCart.count : 0;
 
       if (currentQuantityInCart >= activeProduct.stock) {
-        alert("Üzgünüz, bu ürün için maksimum stok adedine ulaştınız!");
+        alert("Sorry, you have reached the maximum stock for this item!");
         return;
       }
       
       dispatch(addToCart(activeProduct));
-      alert(`"${activeProduct.name}" sepete eklendi!`);
+      alert(`"${activeProduct.name}" has been added to your cart!`);
     }
   };
 
@@ -81,7 +81,7 @@ const ProductDetailPage = () => {
             <span className="ml-3 text-sm text-gray-600">({activeProduct.rating.toFixed(2)} rating)</span>
           </div>
           
-          <p className="text-3xl font-bold text-blue-600 mb-6">{activeProduct.price.toFixed(2)} ₺</p>
+          <p className="text-3xl font-bold text-blue-600 mb-6">{activeProduct.price.toFixed(2)} TL</p>
           
           <h3 className="text-lg font-semibold text-gray-800 mb-2">Description</h3>
           <p className="text-gray-700 leading-relaxed mb-6">{activeProduct.description}</p>
