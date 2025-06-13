@@ -3,7 +3,7 @@ import { useParams, Link, useLocation, useHistory } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { fetchProducts } from '../store/actions/productActions';
 import ProductCard from '../components/ProductCard';
-import { Loader2, ChevronLeft, ChevronRight, Filter as FilterIcon } from 'lucide-react';
+import { Loader2, ChevronLeft, ChevronRight, Filter as FilterIcon, Search } from 'lucide-react';
 
 const slugify = (text) => {
     if (!text) return '';
@@ -44,7 +44,6 @@ const generatePaginationRange = (currentPage, totalPages, siblingCount = 1) => {
   return [];
 };
 
-
 const ShopPage = () => {
   const { gender, categoryName, categoryId } = useParams();
   const dispatch = useDispatch();
@@ -56,10 +55,28 @@ const ShopPage = () => {
 
   const queryParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const currentPage = parseInt(queryParams.get('page')) || 1;
+  const filterFromUrl = queryParams.get('filter') || '';
 
+  const [searchInput, setSearchInput] = useState(filterFromUrl);
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState(filterFromUrl);
   const [pageTitle, setPageTitle] = useState('Shop Our Products');
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
   const productsPerPage = 12;
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+        if (searchInput !== debouncedSearchTerm) {
+            setDebouncedSearchTerm(searchInput);
+            const newSearchParams = new URLSearchParams();
+            newSearchParams.set('page', '1');
+            if (searchInput) {
+                newSearchParams.set('filter', searchInput);
+            }
+            history.push(`${location.pathname}?${newSearchParams.toString()}`);
+        }
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [searchInput, debouncedSearchTerm, history, location.pathname]);
 
   useEffect(() => {
     const offset = (currentPage - 1) * productsPerPage;
@@ -67,8 +84,11 @@ const ShopPage = () => {
     if (categoryId) {
       fetchParams.category_id = categoryId;
     }
+    if (debouncedSearchTerm) {
+      fetchParams.filter = debouncedSearchTerm;
+    }
     dispatch(fetchProducts(fetchParams));
-  }, [dispatch, categoryId, currentPage]);
+  }, [dispatch, categoryId, currentPage, debouncedSearchTerm]);
 
   useEffect(() => {
     let titleForPage = 'All Products';
@@ -93,12 +113,13 @@ const ShopPage = () => {
     window.scrollTo(0, 0);
   }, [currentPage, location.pathname]);
 
-
   const totalPages = totalProducts > 0 ? Math.ceil(totalProducts / productsPerPage) : 0;
   
   const handlePageChange = (newPage) => {
     if (newPage !== DOTS && newPage > 0 && newPage <= totalPages && newPage !== currentPage) {
-      history.push(`${location.pathname}?page=${newPage}`);
+      const newSearchParams = new URLSearchParams(location.search);
+      newSearchParams.set('page', newPage);
+      history.push(`${location.pathname}?${newSearchParams.toString()}`);
     }
   };
 
@@ -109,16 +130,10 @@ const ShopPage = () => {
   const renderCategoryList = (isMobile = false) => (
     <ul className="space-y-1 text-sm">
       <li className={isMobile ? "border-b" : ""}>
-        <Link to="/shop" onClick={() => isMobile && setIsMobileFilterOpen(false)} className={`block py-2 px-2 rounded-md hover:bg-gray-100 ${!categoryId && !gender ? 'text-blue-600 font-semibold bg-blue-100' : 'text-gray-700 hover:text-blue-600'}`}>
-            All Products
-        </Link>
+        <Link to="/shop" onClick={() => isMobile && setIsMobileFilterOpen(false)} className={`block py-2 px-2 rounded-md hover:bg-gray-100 ${!categoryId && !gender ? 'text-blue-600 font-semibold bg-blue-100' : 'text-gray-700 hover:text-blue-600'}`}>All Products</Link>
       </li>
       {categories?.map(cat => (
-         <li key={cat.id} className={isMobile ? "border-b" : ""}>
-             <Link to={`/shop/${genderToUrlKey(cat.gender)}/${slugify(cat.title)}/${cat.id}`} onClick={() => isMobile && setIsMobileFilterOpen(false)} className={`block py-2 px-2 rounded-md hover:bg-gray-100 ${categoryId === cat.id.toString() ? 'text-blue-600 font-semibold bg-blue-100' : 'text-gray-700 hover:text-blue-600'}`}>
-                 {displayCategoryTitleInEnglish(cat.title)}
-             </Link>
-         </li>
+         <li key={cat.id} className={isMobile ? "border-b" : ""}><Link to={`/shop/${genderToUrlKey(cat.gender)}/${slugify(cat.title)}/${cat.id}`} onClick={() => isMobile && setIsMobileFilterOpen(false)} className={`block py-2 px-2 rounded-md hover:bg-gray-100 ${categoryId === cat.id.toString() ? 'text-blue-600 font-semibold bg-blue-100' : 'text-gray-700 hover:text-blue-600'}`}>{displayCategoryTitleInEnglish(cat.title)}</Link></li>
       ))}
     </ul>
   );
@@ -136,48 +151,21 @@ const ShopPage = () => {
         <div className="flex-1">
           <div className="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div className="md:hidden">
-              <button onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)} className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2.5 px-4 rounded-md flex items-center justify-center gap-2 border border-gray-300">
-                <FilterIcon size={18} /><span>Filters / Categories</span>
-              </button>
+              <button onClick={() => setIsMobileFilterOpen(!isMobileFilterOpen)} className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2.5 px-4 rounded-md flex items-center justify-center gap-2 border border-gray-300"><FilterIcon size={18} /><span>Filters / Categories</span></button>
               {isMobileFilterOpen && <div className="mt-2 p-4 bg-white border rounded-md shadow-lg">{renderCategoryList(true)}</div>}
+            </div>
+            <div className="relative w-full md:w-1/2 lg:w-1/3">
+                <input type="text" placeholder="Ürünleri ara..." value={searchInput} onChange={(e) => setSearchInput(e.target.value)} className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500" />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><Search className="h-5 w-5 text-gray-400" /></div>
             </div>
             <div className="flex items-center justify-between md:justify-end gap-3 text-sm">
               <span className="text-gray-600">Showing {productList.length > 0 ? `${(currentPage - 1) * productsPerPage + 1}-${Math.min(currentPage * productsPerPage, totalProducts)}` : 0} of {totalProducts} products</span>
             </div>
           </div>
           
-          {productsLoading ? (
-            <div className="flex justify-center items-center py-20 min-h-[300px]"><Loader2 className="animate-spin h-12 w-12 text-blue-600" /></div>
-          ) : productsError ? (
-            <div className="text-center text-red-600 py-20 min-h-[300px]">Error: {productsError}</div>
-          ) : productList && productList.length > 0 ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
-              {productList.map((product) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
-          ) : (
-            <div className="text-center text-gray-500 py-20 min-h-[300px]">No products found for this selection.</div>
-          )}
+          {productsLoading ? (<div className="flex justify-center items-center py-20 min-h-[300px]"><Loader2 className="animate-spin h-12 w-12 text-blue-600" /></div>) : productsError ? (<div className="text-center text-red-600 py-20 min-h-[300px]">Error: {productsError}</div>) : productList && productList.length > 0 ? (<div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">{productList.map((product) => (<ProductCard key={product.id} product={product} />))}</div>) : (<div className="text-center text-gray-500 py-20 min-h-[300px]">No products found for this selection.</div>)}
 
-          {!productsLoading && totalPages > 1 && (
-            <div className="mt-12 flex justify-center">
-              <nav className="flex items-center rounded-md shadow-sm" aria-label="Pagination">
-                <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="relative inline-flex items-center px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"><ChevronLeft size={18} /></button>
-                
-                {paginationRange && paginationRange.map((pageNumber, index) => {
-                  if (pageNumber === DOTS) {
-                    return <span key={`${DOTS}-${index}`} className="relative inline-flex items-center px-4 py-2 border-y border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>;
-                  }
-                  return (
-                    <button key={pageNumber} onClick={() => handlePageChange(pageNumber)} aria-current={currentPage === pageNumber ? "page" : undefined} className={`relative inline-flex items-center px-4 py-2 border-y text-sm font-medium ${currentPage === pageNumber ? 'z-10 border-blue-500 bg-blue-50 text-blue-600' : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'}`}>{pageNumber}</button>
-                  );
-                })}
-                
-                <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="relative inline-flex items-center px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"><ChevronRight size={18} /></button>
-              </nav>
-            </div>
-          )}
+          {!productsLoading && totalPages > 1 && (<div className="mt-12 flex justify-center"><nav className="flex items-center rounded-md shadow-sm" aria-label="Pagination"><button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1} className="relative inline-flex items-center px-3 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"><ChevronLeft size={18} /></button>{paginationRange && paginationRange.map((pageNumber, index) => { if (pageNumber === DOTS) { return <span key={`${DOTS}-${index}`} className="relative inline-flex items-center px-4 py-2 border-y border-gray-300 bg-white text-sm font-medium text-gray-700">...</span>; } return (<button key={pageNumber} onClick={() => handlePageChange(pageNumber)} aria-current={currentPage === pageNumber ? "page" : undefined} className={`relative hidden md:inline-flex items-center px-4 py-2 border-y text-sm font-medium ${currentPage === pageNumber ? 'z-10 border-blue-500 bg-blue-50 text-blue-600' : 'border-gray-300 bg-white text-gray-700 hover:bg-gray-50'}`}>{pageNumber}</button>);})}<span className="relative md:hidden inline-flex items-center px-4 py-2 border-y border-gray-300 bg-white text-sm font-medium text-gray-700">Page {currentPage} of {totalPages}</span><button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages} className="relative inline-flex items-center px-3 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50"><ChevronRight size={18} /></button></nav></div>)}
         </div>
       </div>
     </div>

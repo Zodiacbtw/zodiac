@@ -1,17 +1,21 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
+import { useHistory } from 'react-router-dom';
 import { fetchAddresses, deleteAddress } from '../store/actions/addressActions';
 import { fetchCards, deleteCard } from '../store/actions/paymentActions';
+import { createOrder } from '../store/actions/orderActions';
 import AddressForm from '../components/AddressForm';
 import CardForm from '../components/CardForm';
 import { Home, Edit, Trash2, PlusCircle, CreditCard } from 'lucide-react';
 
 const OrderPage = () => {
     const dispatch = useDispatch();
+    const history = useHistory();
     
     const { addressList } = useSelector(state => state.address);
     const { cardList } = useSelector(state => state.payment);
-    const cartItems = useSelector(state => state.shoppingCart.cart);
+    const { cart: cartItems, discount: appliedDiscount } = useSelector(state => state.shoppingCart);
+    const { loading: orderLoading } = useSelector(state => state.order);
     
     const [currentStep, setCurrentStep] = useState(1);
     const [selectedAddress, setSelectedAddress] = useState(null);
@@ -27,10 +31,10 @@ const OrderPage = () => {
     }, [dispatch]);
     
     useEffect(() => {
-        if (addressList && addressList.length > 0 && !addressList.some(addr => addr.id === selectedAddress)) {
+        if (addressList.length > 0 && !addressList.some(addr => addr.id === selectedAddress)) {
             setSelectedAddress(addressList[0].id);
         }
-        if (cardList && cardList.length > 0 && !cardList.some(card => card.id === selectedCard)) {
+        if (cardList.length > 0 && !cardList.some(card => card.id === selectedCard)) {
             setSelectedCard(cardList[0].id);
         }
     }, [addressList, cardList, selectedAddress, selectedCard]);
@@ -50,8 +54,41 @@ const OrderPage = () => {
     }, [cardList, editingCard]);
 
     const handleGoToPayment = () => {
-        if (selectedAddress) setCurrentStep(2);
-        else alert("Lütfen bir teslimat adresi seçin.");
+        if (selectedAddress) {
+            setCurrentStep(2);
+        } else {
+            alert("Lütfen bir teslimat adresi seçin.");
+        }
+    };
+
+    const handleCreateOrder = () => {
+        if (!selectedAddress) return alert("Lütfen bir teslimat adresi seçin.");
+        if (!selectedCard) return alert("Lütfen bir ödeme kartı seçin.");
+        
+        const card = cardList.find(c => c.id === selectedCard);
+        const checkedItems = cartItems.filter(item => item.checked);
+        if (!card || checkedItems.length === 0) {
+            alert("Sipariş için gerekli bilgiler eksik.");
+            return;
+        }
+
+        const orderData = {
+            address_id: selectedAddress,
+            order_date: new Date().toISOString(),
+            card_no: card.card_no,
+            card_name: card.name_on_card,
+            card_expire_month: card.expire_month,
+            card_expire_year: card.expire_year,
+            card_ccv: 123,
+            price: orderSummary.grandTotal,
+            products: checkedItems.map(item => ({
+                product_id: item.product.id,
+                count: item.count,
+                detail: item.product.name.substring(0, 50),
+            })),
+        };
+        
+        dispatch(createOrder(orderData, history));
     };
 
     const handleAddNewAddress = () => { setEditingAddress(null); setShowAddressForm(true); };
@@ -90,26 +127,28 @@ const OrderPage = () => {
                             <h2 className="text-2xl font-semibold mb-4">Teslimat Adresi</h2>
                             <div className="space-y-4">
                                 {addressList.map(address => (
-                                    <div key={address.id} onClick={() => setSelectedAddress(address.id)} className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${selectedAddress === address.id ? 'border-orange-500 bg-orange-50' : 'border-gray-200 bg-white'}`}>
+                                    <div key={address.id} onClick={() => setSelectedAddress(address.id)} className={`p-4 border-2 rounded-lg cursor-pointer ${selectedAddress === address.id ? 'border-orange-500 bg-orange-50' : 'border-gray-200 bg-white'}`}>
                                         <div className="flex justify-between items-start">
                                             <div className="flex items-start gap-4">
-                                                <input type="radio" name="address" checked={selectedAddress === address.id} readOnly className="h-5 w-5 mt-1 text-orange-600 focus:ring-orange-500" />
-                                                <Home size={24} className="text-gray-600 mt-1 flex-shrink-0" />
-                                                <div className="flex flex-col">
-                                                    <p className="font-bold text-gray-800">{address.title}</p>
-                                                    <p className="text-sm text-gray-700 font-semibold">{address.name} {address.surname}</p>
-                                                    <p className="text-sm text-gray-500 mt-1">{address.neighborhood}, {address.district}/{address.city}</p>
-                                                    <p className="text-sm text-gray-500">{address.phone}</p>
+                                                <input type="radio" name="address" checked={selectedAddress === address.id} readOnly className="h-5 w-5 mt-1" />
+                                                <Home size={24} className="mt-1" />
+                                                <div>
+                                                    <p className="font-bold">{address.title}</p>
+                                                    <p className="text-sm font-semibold">{address.name} {address.surname}</p>
+                                                    <p className="text-sm">{address.neighborhood}, {address.district}/{address.city}</p>
+                                                    <p className="text-sm">{address.phone}</p>
                                                 </div>
                                             </div>
-                                            <div className="flex gap-4 text-gray-500">
-                                                <button onClick={(e) => { e.stopPropagation(); handleEditAddress(address); }} className="hover:text-blue-600"><Edit size={18} /></button>
-                                                <button onClick={(e) => { e.stopPropagation(); handleDeleteAddress(address.id); }} className="hover:text-red-600"><Trash2 size={18} /></button>
+                                            <div className="flex gap-4">
+                                                <button onClick={(e) => { e.stopPropagation(); handleEditAddress(address); }}><Edit size={18} /></button>
+                                                <button onClick={(e) => { e.stopPropagation(); handleDeleteAddress(address.id); }}><Trash2 size={18} /></button>
                                             </div>
                                         </div>
                                     </div>
                                 ))}
-                                <button onClick={handleAddNewAddress} className="w-full flex items-center justify-center gap-2 p-6 border-2 border-dashed rounded-lg text-gray-500 hover:bg-gray-100 hover:border-gray-400 transition-all"><PlusCircle /> Yeni Adres Ekle</button>
+                                <button onClick={handleAddNewAddress} className="w-full flex items-center justify-center gap-2 p-6 border-2 border-dashed rounded-lg">
+                                    <PlusCircle /> Yeni Adres Ekle
+                                </button>
                                 {showAddressForm && <AddressForm existingAddress={editingAddress} onFormClose={() => setShowAddressForm(false)} />}
                             </div>
                         </div>
@@ -124,7 +163,7 @@ const OrderPage = () => {
                                             <div className="flex items-center gap-4">
                                                 <input type="radio" name="card" checked={selectedCard === card.id} readOnly className="h-5 w-5" />
                                                 <CreditCard size={24} />
-                                                <div className="flex flex-col">
+                                                <div>
                                                     <p className="font-bold">{card.name_on_card}</p>
                                                     <p>**** **** **** {card.card_no.slice(-4)}</p>
                                                 </div>
@@ -136,25 +175,28 @@ const OrderPage = () => {
                                         </div>
                                     </div>
                                 ))}
-                                <button onClick={handleAddNewCard} className="w-full flex items-center justify-center gap-2 p-6 border-2 border-dashed rounded-lg text-gray-500 hover:bg-gray-100"><PlusCircle /> Yeni Kart Ekle</button>
+                                <button onClick={handleAddNewCard} className="w-full flex items-center justify-center gap-2 p-6 border-2 border-dashed rounded-lg">
+                                    <PlusCircle /> Yeni Kart Ekle
+                                </button>
                                 {showCardForm && <CardForm existingCard={editingCard} onFormClose={() => setShowCardForm(false)} />}
+                                
+                                
                             </div>
                         </div>
                     )}
                 </div>
-
                 <div className="lg:w-96 w-full lg:flex-shrink-0">
                     <div className="bg-white p-6 rounded-lg shadow-sm border sticky top-24 space-y-4">
                         <h2 className="text-xl font-bold">Sipariş Özeti</h2>
                         <div className="space-y-2 text-gray-700">
-                            <div className="flex justify-between"><span>Ürünlerin Toplamı</span><span className="font-semibold">{orderSummary.subtotal.toFixed(2)} TL</span></div>
-                            <div className="flex justify-between"><span>Kargo Toplamı</span><span className="font-semibold">{orderSummary.shippingCost.toFixed(2)} TL</span></div>
+                            <div className="flex justify-between"><span>Ürünlerin Toplamı</span><span>{orderSummary.subtotal.toFixed(2)} TL</span></div>
+                            <div className="flex justify-between"><span>Kargo Toplamı</span><span>{orderSummary.shippingCost.toFixed(2)} TL</span></div>
                             {orderSummary.shippingDiscount > 0 && (<div className="flex justify-between"><span>Kargo İndirimi</span><span className="text-green-600 font-semibold">-{orderSummary.shippingDiscount.toFixed(2)} TL</span></div>)}
                         </div>
                         <hr />
                         <div className="flex justify-between text-lg font-bold"><span>Toplam</span><span>{orderSummary.grandTotal.toFixed(2)} TL</span></div>
                         {currentStep === 1 && <button onClick={handleGoToPayment} className="w-full bg-orange-500 text-white font-bold py-3 rounded-lg hover:bg-orange-600">Kaydet ve Devam Et</button>}
-                        {currentStep === 2 && <button className="w-full bg-orange-500 text-white font-bold py-3 rounded-lg hover:bg-orange-600">Ödeme Yap</button>}
+                        {currentStep === 2 && <button onClick={handleCreateOrder} disabled={orderLoading} className="w-full bg-orange-500 text-white font-bold py-3 rounded-lg hover:bg-orange-600 disabled:opacity-50">{orderLoading ? 'İşleniyor...' : 'Ödeme Yap'}</button>}
                     </div>
                 </div>
             </div>

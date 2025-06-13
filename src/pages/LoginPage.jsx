@@ -18,6 +18,7 @@ const LoginPage = () => {
   const dispatch = useDispatch();
   const history = useHistory();
   const location = useLocation();
+  
   const { isLoggingIn, loginError } = useSelector(state => state.client);
   const [rememberMe, setRememberMe] = useState(false);
 
@@ -25,14 +26,19 @@ const LoginPage = () => {
 
   const { register, handleSubmit, formState: { errors } } = useForm({
     resolver: yupResolver(schema),
+    mode: "onChange",
   });
 
   const onSubmit = async (data) => {
-    const result = await dispatch(loginUser(data, rememberMe, history, from));
-    if (!result.success && result.message) {
-      toast.error(result.message);
-    } else if (result.success) {
-        toast.success("Login successful!");
+    const result = await dispatch(loginUser(data, rememberMe));
+    
+    if (result.success) {
+        toast.success("Login successful!", {
+            onClose: () => history.replace(from),
+            autoClose: 2000,
+        });
+    } else if (result.message) {
+        toast.error(result.message);
     }
   };
 

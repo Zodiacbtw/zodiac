@@ -1,7 +1,7 @@
 import {
   SET_CART, SET_PAYMENT, SET_ADDRESS, ADD_TO_CART, REMOVE_FROM_CART,
   UPDATE_CART_ITEM_COUNT, TOGGLE_CART_ITEM_CHECKED,
-  APPLY_DISCOUNT, REMOVE_DISCOUNT
+  APPLY_DISCOUNT, REMOVE_DISCOUNT, CLEAR_CART
 } from '../actions/shoppingCartActions';
 
 const initialState = {
@@ -83,6 +83,13 @@ const shoppingCartReducer = (state = initialState, action) => {
     case REMOVE_DISCOUNT:
       return {
         ...state,
+        discount: null,
+      };
+      
+    case CLEAR_CART:
+      return {
+        ...state,
+        cart: [],
         discount: null,
       };
 

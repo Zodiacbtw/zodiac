@@ -5,6 +5,7 @@ import shoppingCartReducer from './shoppingCartReducer';
 import categoryReducer from './categoryReducer';
 import { addressReducer } from './addressReducer';
 import { paymentReducer } from './paymentReducer';
+import { orderReducer } from './orderReducer';
 
 const rootReducer = combineReducers({
   client: clientReducer,
@@ -13,6 +14,7 @@ const rootReducer = combineReducers({
   category: categoryReducer,
   address: addressReducer,
   payment: paymentReducer,
+  order: orderReducer,
 });
 
 export default rootReducer;

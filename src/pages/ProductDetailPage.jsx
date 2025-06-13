@@ -12,7 +12,7 @@ const ProductDetailPage = () => {
 
   const { activeProduct, loading, error } = useSelector(state => state.product);
   const cartItems = useSelector(state => state.shoppingCart.cart);
-
+  
   useEffect(() => {
     if (productId) {
       dispatch(fetchProductById(productId));

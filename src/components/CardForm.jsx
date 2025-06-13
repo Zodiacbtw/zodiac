@@ -45,19 +45,26 @@ const CardForm = ({ existingCard, onFormClose }) => {
         const selectedYear = parseInt(formData.expire_year, 10);
         const selectedMonth = parseInt(formData.expire_month, 10);
 
-        if (formData.card_no.length !== 16) { errors.card_no = "Kart numarası 16 haneli olmalıdır."; }
-        if (selectedYear < currentYear || (selectedYear === currentYear && selectedMonth < currentMonth)) { errors.date = "Geçerli bir son kullanma tarihi giriniz."; }
-        if (formData.cvv.length !== 3) { errors.cvv = "CVV 3 haneli olmalıdır."; }
+        if (formData.card_no.length !== 16) {
+            errors.card_no = "Kart numarası 16 haneli olmalıdır.";
+        }
+        if (selectedYear < currentYear || (selectedYear === currentYear && selectedMonth < currentMonth)) {
+            errors.date = "Geçerli bir son kullanma tarihi giriniz.";
+        }
+        if (formData.cvv.length !== 3) {
+            errors.cvv = "CVV 3 haneli olmalıdır.";
+        }
         
         setFormErrors(errors);
         return Object.keys(errors).length === 0;
     };
 
-
     const handleSubmit = (e) => {
         e.preventDefault();
         
-        if (!validateForm()) return;
+        if (!validateForm()) {
+            return;
+        }
 
         const { cvv, ...cardDataForApi } = {
             ...formData,
@@ -82,19 +89,42 @@ const CardForm = ({ existingCard, onFormClose }) => {
             <h3 className="text-xl font-bold mb-4">{formData.id ? 'Kart Bilgilerini Düzenle' : 'Yeni Kart Ekle'}</h3>
             
             <div>
-                <label htmlFor="name_on_card" className="block text-sm font-medium text-gray-700 mb-1">Kart Üzerindeki İsim</label>
-                <input type="text" id="name_on_card" name="name_on_card" value={formData.name_on_card} onChange={handleChange} required className="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
+                <label htmlFor="name_on_card" className="block text-sm font-medium text-gray-700 mb-1">
+                    Kart Üzerindeki İsim
+                </label>
+                <input 
+                    type="text" 
+                    id="name_on_card" 
+                    name="name_on_card" 
+                    value={formData.name_on_card} 
+                    onChange={handleChange} 
+                    required 
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500"
+                />
             </div>
 
             <div>
-                <label htmlFor="card_no" className="block text-sm font-medium text-gray-700 mb-1">Kart Numarası</label>
-                <input type="text" id="card_no" name="card_no" value={formData.card_no} onChange={handleChange} placeholder="---- ---- ---- ----" required className="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
+                <label htmlFor="card_no" className="block text-sm font-medium text-gray-700 mb-1">
+                    Kart Numarası
+                </label>
+                <input 
+                    type="text" 
+                    id="card_no" 
+                    name="card_no" 
+                    value={formData.card_no} 
+                    onChange={handleChange} 
+                    placeholder="---- ---- ---- ----" 
+                    required 
+                    className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-orange-500 focus:border-orange-500" 
+                />
                 {formErrors.card_no && <p className="text-xs text-red-500 mt-1">{formErrors.card_no}</p>}
             </div>
             
             <div className="flex gap-4 items-start">
                 <div className="w-1/2">
-                    <label htmlFor="expire_month" className="block text-sm font-medium text-gray-700 mb-1">Son Kullanma Tarihi</label>
+                    <label htmlFor="expire_month" className="block text-sm font-medium text-gray-700 mb-1">
+                        Son Kullanma Tarihi
+                    </label>
                     <div className="flex gap-2">
                         <select 
                             id="expire_month" 
@@ -107,7 +137,6 @@ const CardForm = ({ existingCard, onFormClose }) => {
                             <option value="" disabled>Ay</option>
                             {months.map(m => <option key={m} value={m}>{m}</option>)}
                         </select>
-                        
                         <select 
                             id="expire_year" 
                             name="expire_year" 
@@ -123,8 +152,20 @@ const CardForm = ({ existingCard, onFormClose }) => {
                     {formErrors.date && <p className="text-xs text-red-500 mt-1">{formErrors.date}</p>}
                 </div>
                 <div className="w-1/2">
-                    <label htmlFor="cvv" className="block text-sm font-medium text-gray-700 mb-1">CVV</label>
-                    <input type="text" id="cvv" name="cvv" value={formData.cvv} onChange={handleChange} required className="mt-1 block w-full border-gray-300 rounded-md shadow-sm" />
+                    <label htmlFor="cvv" className="block text-sm font-medium text-gray-700 mb-1">
+                        CVV
+                    </label>
+                    <input 
+                        type="text" 
+                        id="cvv" 
+                        name="cvv" 
+                        value={formData.cvv}
+                        onChange={handleChange} 
+                        maxLength="3"
+                        placeholder="123" 
+                        required 
+                        className="mt-1 block w-full border-gray-300 rounded-md shadow-sm"
+                    />
                     {formErrors.cvv && <p className="text-xs text-red-500 mt-1">{formErrors.cvv}</p>}
                 </div>
             </div>

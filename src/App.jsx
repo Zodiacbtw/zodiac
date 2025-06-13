@@ -17,9 +17,11 @@ import AboutPage from './pages/AboutPage';
 import SignUpPage from './pages/SignUpPage';
 import LoginPage from './pages/LoginPage';
 import CartPage from './pages/CartPage';
-
 import OrderPage from './pages/OrderPage';
+import OrderSuccessPage from './pages/OrderSuccessPage';
 import ProtectedRoute from './components/ProtectedRoute';
+import ProfilePage from './pages/ProfilePage';
+import ScrollToTop from './components/ScrollToTop';
 
 
 function AppContent() {
@@ -34,7 +36,6 @@ function AppContent() {
     if (tokenInStorage && !isAuthenticated && !clientLoading) {
       dispatch(verifyTokenOnAppLoad());
     } else if (!tokenInStorage && isAuthenticated) {
-      console.warn("Inconsistent state: Authenticated in Redux but no token in localStorage. Logging out.");
       dispatch(logoutUser(history));
     }
   }, [dispatch, isAuthenticated, clientLoading, history]);
@@ -57,7 +58,6 @@ function AppContent() {
       <PageContent>
         <Switch>
           <Route exact path="/"> <HomePage /> </Route>
-          
           <Route 
             exact 
             path="/shop" 
@@ -68,15 +68,13 @@ function AppContent() {
             path="/shop/:gender/:categoryName/:categoryId" 
             render={({ location }) => <ShopPage key={location.pathname} />}
           />
-          
           <Route path="/shop/:gender/:categoryName/:categoryId/:productNameSlug/:productId">
             <ProductDetailPage />
           </Route>
-          
           <Route exact path="/cart"> <CartPage /> </Route>
-
           <ProtectedRoute exact path="/order" component={OrderPage} />
-
+          <Route exact path="/order-success" component={OrderSuccessPage} />
+          <ProtectedRoute exact path="/profile" component={ProfilePage} />
           <Route exact path="/contact"> <ContactPage /> </Route>
           <Route exact path="/team"> <TeamPage /> </Route>
           <Route exact path="/about"> <AboutPage /> </Route>
@@ -92,6 +90,7 @@ function AppContent() {
 function App() {
     return (
         <Router>
+            <ScrollToTop />
             <AppContent />
         </Router>
     );
